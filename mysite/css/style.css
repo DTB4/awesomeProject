@@ -1,13 +1,14 @@
 body {
     box-sizing: border-box;
     margin: 0px;
-
+    background-image: url(../imgs/background2.jpg);
+    background-size: cover; 
 }
 
 .main-content-section{
-    background-color: bisque;
+    
     position: relative;
-    padding: 15px 2%;
+    padding: 0px 0 15px 0;
 }
 
 .main-footer{
@@ -27,23 +28,30 @@ body {
     height: 100px;
     width: 100%;
     padding: 30px 5%;
-    background-color: aquamarine;
+    background-color: #D67ADE;
     position: sticky;
     top: 0px;
     z-index: 5;
     box-sizing: border-box;
+    box-shadow: 0 2px 4px rgb(0 0 0 / 10%);
 }
 
 .search-by-location{
     display: flex;
     flex-direction: column;
-    background-color: darkkhaki;
+    background-color: #D67ADE;
     padding: 30px 5%;
     align-items: center;
 }
+.upper-swing-line{
+    display: block;
+    width: 100%;
+    
+}
+
 
 .categories-links-section{
-    background-color: darkorchid;
+    
     padding: 30px 5%;
     display: flex;
     flex-direction: row;
@@ -65,27 +73,34 @@ body {
     justify-content: center;
 }
 .category-buble{
-    height: 110px;
-    width: 110px;
+    height: 120px;
+    width: 120px;
     margin: 8px;
+    align-items: center;
+    justify-content: center;  
     
 }
 .category-buble-link{
     display: flex;
+    flex-direction: column;
     background-color: white;
     height: 100%;
     width: 100%;
     border-radius: 100%;
     padding: 0px;
     align-items: center;
-    justify-content: center;
-    
+    justify-content: center;    
+    text-decoration: none;
 }
 .colaboration-buble{
     height: 150px;
     width: 150px;
     margin: 15px;
 }
+.buble-text{
+margin: 0px;
+}
+
 .colaboration-buble-link{
     display: flex;
     background-color: white;
