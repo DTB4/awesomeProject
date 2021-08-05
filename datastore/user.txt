@@ -1,0 +1,128 @@
+[
+{
+"id": 0,
+"name": "Petya",
+"email": "petr@gm.com",
+"password": "pasword123",
+"location": "home19283012x120830131",
+"phone_number": "05099922213",
+"deleted": ""
+},
+{
+"id": 1,
+"name": "Petya",
+"email": "petr@gm.com",
+"password": "pasword123",
+"location": "home19283012x120830131",
+"phone_number": "05099922213",
+"deleted": ""
+},
+{
+"id": 2,
+"name": "Petya",
+"email": "petr@gm.com",
+"password": "pasword123",
+"location": "home19283012x120830131",
+"phone_number": "05099922213",
+"deleted": ""
+},
+{
+"id": 3,
+"name": "Petya",
+"email": "petr@gm.com",
+"password": "pasword123",
+"location": "home19283012x120830131",
+"phone_number": "05099922213",
+"deleted": ""
+},
+{
+"id": 4,
+"name": "Petya",
+"email": "petr@gm.com",
+"password": "pasword123",
+"location": "home19283012x120830131",
+"phone_number": "05099922213",
+"deleted": ""
+},
+{
+"id": 5,
+"name": "Petya",
+"email": "petr@gm.com",
+"password": "pasword123",
+"location": "home19283012x120830131",
+"phone_number": "05099922213",
+"deleted": ""
+},
+{
+"id": 6,
+"name": "Petya",
+"email": "petr@gm.com",
+"password": "pasword123",
+"location": "home19283012x120830131",
+"phone_number": "05099922213",
+"deleted": ""
+},
+{
+"id": 7,
+"name": "Petya",
+"email": "petr@gm.com",
+"password": "pasword123",
+"location": "home19283012x120830131",
+"phone_number": "05099922213",
+"deleted": ""
+},
+{
+"id": 8,
+"name": "Petya",
+"email": "petr@gm.com",
+"password": "pasword123",
+"location": "home19283012x120830131",
+"phone_number": "05099922213",
+"deleted": ""
+},
+{
+"id": 9,
+"name": "Petya",
+"email": "petr@gm.com",
+"password": "pasword123",
+"location": "home19283012x120830131",
+"phone_number": "05099922213",
+"deleted": ""
+},
+{
+"id": 10,
+"name": "Petya",
+"email": "petr@gm.com",
+"password": "pasword123",
+"location": "home19283012x120830131",
+"phone_number": "05099922213",
+"deleted": ""
+},
+{
+"id": 11,
+"name": "Petya",
+"email": "petr@gm.com",
+"password": "pasword123",
+"location": "home19283012x120830131",
+"phone_number": "05099922213",
+"deleted": ""
+},
+{
+"id": 12,
+"name": "Petya",
+"email": "petr@gm.com",
+"password": "pasword123",
+"location": "home19283012x120830131",
+"phone_number": "05099922213",
+"deleted": ""
+},
+{
+"id": 13,
+"name": "Petya",
+"email": "petr@gm.com",
+"password": "pasword123",
+"location": "home19283012x120830131",
+"phone_number": "05099922213",
+"deleted": ""
+}
+]

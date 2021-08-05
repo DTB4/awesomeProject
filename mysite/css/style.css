@@ -1,0 +1,97 @@
+body {
+    box-sizing: border-box;
+    margin: 0px;
+
+}
+
+.main-content-section{
+    background-color: bisque;
+    position: relative;
+    padding: 15px 2%;
+}
+
+.main-footer{
+    background-color:cyan;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 5px 1%;
+}
+
+.main-header {
+    display:flex;
+    flex-direction: row;
+    justify-content: space-between;
+    height: 100px;
+    width: 100%;
+    padding: 30px 5%;
+    background-color: aquamarine;
+    position: sticky;
+    top: 0px;
+    z-index: 5;
+    box-sizing: border-box;
+}
+
+.search-by-location{
+    display: flex;
+    flex-direction: column;
+    background-color: darkkhaki;
+    padding: 30px 5%;
+    align-items: center;
+}
+
+.categories-links-section{
+    background-color: darkorchid;
+    padding: 30px 5%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+.restaurants-lists-section{
+    background-color: deeppink;
+    padding: 30px 5%;
+}
+.text-imgs-section{
+    background-color: ghostwhite;
+    padding: 30px 5%;
+}
+
+.collaboration-section{
+    padding: 30px 5%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+.category-buble{
+    height: 110px;
+    width: 110px;
+    margin: 8px;
+    
+}
+.category-buble-link{
+    display: flex;
+    background-color: white;
+    height: 100%;
+    width: 100%;
+    border-radius: 100%;
+    padding: 0px;
+    align-items: center;
+    justify-content: center;
+    
+}
+.colaboration-buble{
+    height: 150px;
+    width: 150px;
+    margin: 15px;
+}
+.colaboration-buble-link{
+    display: flex;
+    background-color: white;
+    height: 100%;
+    width: 100%;
+    border-radius: 100%;
+    padding: 0px;
+    align-items: center;
+}
