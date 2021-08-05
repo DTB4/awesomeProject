@@ -16,24 +16,36 @@ import (
 func main() {
 	userRepository := fileRepository.NewUserFileRepository()
 
+	// //Search user by ID or email
 	//u:=model.User{
 	//	ID: 9,
 	//	Email: "petr9@gm.com",
 	//}
-	//findedUser, err:= userRepository.Get(&u.Email, &u.ID)
+	//findedUser, err:= userRepository.Get(&u)
 	//if err != nil {
 	//	fmt.Println(err)
 	//}
 	//fmt.Println(findedUser, "we found this")
 
+	// //Soft Delete User by ID
+	//u := model.User{
+	//	ID: 9,
+	//}
+	//userRepository.Delete(u.ID)
 
+	//Edit user by all new lines except ID
 	u := model.User{
-		ID: 9,
+		ID:          10,
+		Name:        "Kostya",
+		Email:       "dtb@gmail.com",
+		Password:    "342531343eeee",
+		Location:    "uBabushki",
+		PhoneNumber: "0508577629",
+		Deleted:     "",
 	}
-	userRepository.Delete(u.ID)
+	userRepository.Edit(&u)
 
-
-
+	// //Get all users
 	//allUsers, err := userRepository.GetAll()
 	//if err != nil {
 	//	fmt.Println(err)
@@ -44,9 +56,7 @@ func main() {
 	//}
 	//fmt.Println("End of Users list")
 
-
-
-
+	////Create new user with incremented ID from file
 	//u := model.User{
 	//	ID:          0,
 	//	Name:        "Petya",
@@ -62,7 +72,7 @@ func main() {
 	//	return
 	//}
 
-//	fmt.Println("Server is listening for http//")
-//	http.HandleFunc("/api/", handler)
-//log.Fatal(http.ListenAndServe(":8080",nil))
+	//	fmt.Println("Server is listening for http//")
+	//	http.HandleFunc("/api/", handler)
+	//log.Fatal(http.ListenAndServe(":8080",nil))
 }
