@@ -14,7 +14,7 @@ func NewDB() *sql.DB {
 	dbProtocolIpPort := viper.GetString("DATABASE_PROTOCOL_IP_PORT")
 	dbName := viper.GetString("DATABASE_NAME")
 
-	dataSourceName := dbUserName + ":" + dbUserPassword + "@" + dbProtocolIpPort + "/" + dbName
+	dataSourceName := dbUserName + ":" + dbUserPassword + "@" + dbProtocolIpPort + "/" + dbName + "?parseTime=True"
 	db, err := sql.Open("mysql", dataSourceName)
 	if err != nil {
 		log.Fatal(err)

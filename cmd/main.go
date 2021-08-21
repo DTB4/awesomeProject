@@ -24,7 +24,9 @@ func main() {
 
 	http.HandleFunc("/getall", profileHandler.GetAll)
 	http.HandleFunc("/registration", profileHandler.CreateNewUser)
-	//http.HandleFunc("/profile", userHandler.TokenCheck(userHandler.GetProfile))
+	http.HandleFunc("/profile", profileHandler.TokenCheck(profileHandler.ShowUserProfile))
+	http.HandleFunc("/editprofile", profileHandler.TokenCheck(profileHandler.EditUserProfile))
+	http.HandleFunc("/login", profileHandler.Login)
 
 	log.Fatal(http.ListenAndServe(viper.GetString("HTTP_PORT"), nil))
 }

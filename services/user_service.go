@@ -18,6 +18,7 @@ type UserServiceI interface {
 	GetUserByID(userID int) (*models.User, error)
 	GetUserByEmail(email string) (*models.User, error)
 	EditUserProfile(user *models.User) error
+	GetAllUsers() (*[]models.User, error)
 }
 
 type UserService struct {
@@ -58,4 +59,12 @@ func (u UserService) EditUserProfile(user *models.User) error {
 		return err
 	}
 	return nil
+}
+
+func (u UserService) GetAllUsers() (*[]models.User, error) {
+	users, err := u.UserRepository.GetAll()
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }

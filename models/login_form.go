@@ -1,6 +1,6 @@
 package models
 
-type AuthForm struct {
+type LoginForm struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }

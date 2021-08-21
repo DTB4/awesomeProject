@@ -58,30 +58,32 @@ func (or OrderRepository) GetUserOrders(userID int) (*[]models.Order, error) {
 	if err != nil {
 		return nil, err
 	}
-	for i := 0; rows.Next(); i++ {
-		err := rows.Scan(&orders[i].ID, &orders[i].IDUser, &orders[i].Status, &orders[i].Created, &orders[i].Updated)
+	order := models.Order{}
+	for rows.Next() {
+		err := rows.Scan(&order.ID, &order.IDUser, &order.Status, &order.Created, &order.Updated)
 		if err != nil {
 			log.Println(err)
 		}
-		fmt.Println(orders)
+		orders = append(orders, order)
 	}
 	return &orders, nil
 }
 
 func (or OrderRepository) GetOrderProducts(orderID int) (*[]models.OrderProduct, error) {
-	var orderProduct []models.OrderProduct
+	var orderProductSlice []models.OrderProduct
 	rows, err := or.db.Query("SELECT * FROM order_product WHERE order_id=?", orderID)
 	if err != nil {
 		return nil, err
 	}
-	for i := 0; rows.Next(); i++ {
-		err := rows.Scan(&orderProduct[i].OrderID, &orderProduct[i].ProductID, &orderProduct[i].Quantity)
+	orderProduct := models.OrderProduct{}
+	for rows.Next() {
+		err := rows.Scan(&orderProduct.OrderID, &orderProduct.ProductID, &orderProduct.Quantity)
 		if err != nil {
 			log.Println(err)
 		}
-		fmt.Println(orderProduct)
+		orderProductSlice = append(orderProductSlice, orderProduct)
 	}
-	return &orderProduct, nil
+	return &orderProductSlice, nil
 }
 
 func (or OrderRepository) CreateOrderProducts(orderProducts *[]models.OrderProduct) error {

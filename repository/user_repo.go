@@ -19,7 +19,7 @@ type UserRepositoryI interface {
 	GetUserByID(id int) (*models.User, error)
 	CreateNewUser(user *models.User) error
 	EditUserData(user *models.User) error
-	GetAll()
+	GetAll() error
 }
 
 type UserRepository struct {
@@ -76,18 +76,19 @@ func (u UserRepository) EditUserData(user *models.User) error {
 	return nil
 }
 
-func (u UserRepository) GetAll() {
+func (u UserRepository) GetAll() (*[]models.User, error) {
 	var users []models.User
-	rows, err := u.db.Query("SELECT * FROM users?")
+	rows, err := u.db.Query("SELECT * FROM users")
 	if err != nil {
 		log.Fatal(err)
 	}
-	for i := 0; rows.Next(); i++ {
-		err := rows.Scan(&users[i].ID, &users[i].FirstName, &users[i].SecondName, &users[i].Email, &users[i].PasswordHash, &users[i].Created, &users[i].Updated, &users[i].Deleted)
+	user := models.User{}
+	for rows.Next() {
+		err := rows.Scan(&user.ID, &user.FirstName, &user.SecondName, &user.Email, &user.PasswordHash, &user.Created, &user.Updated, &user.Deleted)
 		if err != nil {
 			log.Println(err)
 		}
-		fmt.Println(users[i])
+		users = append(users, user)
 	}
-	//return &users[], nil
+	return &users, nil
 }
