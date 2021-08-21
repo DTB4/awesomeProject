@@ -4,12 +4,15 @@ import (
 	"awesomeProject/models"
 	"awesomeProject/services"
 	"encoding/json"
+	"fmt"
+	"github.com/spf13/viper"
 	"net/http"
 )
 
-func NewProfileHandler(userService *services.UserService) *ProfileHandler {
+func NewProfileHandler(userService *services.UserService, tokenService *services.TokenService) *ProfileHandler {
 	return &ProfileHandler{
-		userService,
+		userService:  userService,
+		tokenService: tokenService,
 	}
 }
 
@@ -22,7 +25,8 @@ type ProfileHandlerI interface {
 }
 
 type ProfileHandler struct {
-	userService *services.UserService
+	userService  *services.UserService
+	tokenService *services.TokenService
 }
 
 func (p ProfileHandler) GetAll(w http.ResponseWriter, req *http.Request) {
@@ -55,5 +59,18 @@ func (p ProfileHandler) CreateNewUser(w http.ResponseWriter, req *http.Request) 
 }
 
 func (p ProfileHandler) TokenCheck(next http.HandlerFunc) http.HandlerFunc {
-	panic("implement me")
+	return func(w http.ResponseWriter, req *http.Request) {
+		bearerString := req.Header.Get("Authorization")
+		tokenString := p.tokenService.GetTokenFromBearerString(bearerString)
+
+		claims, err := p.tokenService.ValidateToken(tokenString, viper.GetString("ACCESS_SECRET_STRING"))
+
+		fmt.Println("user with ID = ", claims.ID, " login")
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		next(w, req)
+	}
 }

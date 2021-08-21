@@ -19,7 +19,8 @@ func main() {
 	userRepository := repository.NewUserRepository(db)
 	orderRepository := repository.NewOrderRepository(db)
 	userService := services.NewUserService(orderRepository, userRepository)
-	profileHandler := handlers.NewProfileHandler(userService)
+	tokenService := services.NewTokenService()
+	profileHandler := handlers.NewProfileHandler(userService, tokenService)
 
 	http.HandleFunc("/getall", profileHandler.GetAll)
 	http.HandleFunc("/registration", profileHandler.CreateNewUser)
