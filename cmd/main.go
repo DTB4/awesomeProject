@@ -21,11 +21,16 @@ func main() {
 	myLogger := logger.NewLogger(os.Getenv("LOGS_DIRECTORY_PATH"))
 
 	db := dbconstructor.NewDB()
+	suppliersRepository := repository.NewSupplierRepository(db)
+	productRepository := repository.NewProductsRepository(db)
 	userRepository := repository.NewUserRepository(db)
 	orderRepository := repository.NewOrderRepository(db)
 	userService := services.NewUserService(orderRepository, userRepository)
 	tokenService := services.NewTokenService()
 	profileHandler := handlers.NewProfileHandler(userService, tokenService, myLogger)
+
+	menuParser := services.NewMenuParser(myLogger, suppliersRepository, productRepository)
+	go menuParser.TimedParsing(10)
 
 	http.HandleFunc("/getall", profileHandler.GetAll)
 	http.HandleFunc("/registration", profileHandler.CreateNewUser)

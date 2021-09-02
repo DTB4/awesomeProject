@@ -14,8 +14,6 @@ import (
 	"strconv"
 )
 
-func init() {}
-
 func NewProfileHandler(userService *services.UserService, tokenService *services.TokenService, logger *logger.Logger) *ProfileHandler {
 	return &ProfileHandler{
 		userService:  userService,
@@ -140,10 +138,18 @@ func (p ProfileHandler) EditUserProfile(w http.ResponseWriter, req *http.Request
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotAcceptable)
 		}
-		err = p.userService.EditUserProfile(user)
+		result, err := p.userService.EditUserProfile(user)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
+		rowsAffected, err := result.LastInsertId()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		log.Println(rowsAffected)
+
 	default:
 		http.Error(w, "Only POST is Allowed", http.StatusMethodNotAllowed)
 	}
@@ -157,10 +163,18 @@ func (p ProfileHandler) CreateNewUser(w http.ResponseWriter, req *http.Request) 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotAcceptable)
 		}
-		err = p.userService.CreateNewUser(user)
+		result, err := p.userService.CreateNewUser(user)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
+		lastUserId, err := result.LastInsertId()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		log.Println(lastUserId)
+
 	default:
 		http.Error(w, "Only POST is Allowed", http.StatusMethodNotAllowed)
 	}
