@@ -12,38 +12,28 @@ func NewSupplierRepository(db *sql.DB) *SupplierRepository {
 }
 
 type SupplierRepositoryI interface {
-	CreateNewSupplier(restaurant *models.Supplier) (sql.Result, error)
-	GetSupplierByID(id int) (*models.Supplier, error)
-	GetAllSuppliers() (*[]models.Supplier, error)
-	EditSupplier(restaurant *models.Supplier) (sql.Result, error)
-	DeleteSupplier(id int) (sql.Result, error)
-	DeleteAllSuppliers() (sql.Result, error)
-	SearchSupplierByID(id int) (bool, error)
+	Create(restaurant *models.Supplier) (sql.Result, error)
+	GetByID(id int) (*models.Supplier, error)
+	GetAll() (*[]models.Supplier, error)
+	Update(restaurant *models.Supplier) (sql.Result, error)
+	Delete(id int) (sql.Result, error)
+	Truncate() (sql.Result, error)
+	SearchByID(id int) (bool, error)
 }
 
 type SupplierRepository struct {
 	db *sql.DB
 }
 
-func (s SupplierRepository) CreateNewSupplier(supplier *models.Supplier) (sql.Result, error) {
-	tx, err := s.db.Begin()
+func (s SupplierRepository) Create(supplier *models.Supplier) (sql.Result, error) {
+	result, err := s.db.Exec("INSERT INTO supliers (id, name, description, created, updated, img_url) VALUES (?, ?, ?, ?, ?, ?)", supplier.ID, supplier.Name, supplier.Description, time.Now(), time.Now(), supplier.ImgURL)
 	if err != nil {
-		return nil, err
-	}
-	result, err := tx.Exec("INSERT INTO supliers (id, name, description, created, updated, img_url) VALUES (?, ?, ?, ?, ?, ?)", supplier.ID, supplier.Name, supplier.Description, time.Now(), time.Now(), supplier.ImgURL)
-	if err != nil {
-		err = tx.Rollback()
-		return nil, err
-	}
-	err = tx.Commit()
-	if err != nil {
-		err = tx.Rollback()
 		return nil, err
 	}
 	return result, nil
 }
 
-func (s SupplierRepository) GetSupplierByID(id int) (*models.Supplier, error) {
+func (s SupplierRepository) GetByID(id int) (*models.Supplier, error) {
 	supplier := models.Supplier{}
 	rows, err := s.db.Query("SELECT * FROM supliers WHERE id=?", id)
 
@@ -63,7 +53,7 @@ func (s SupplierRepository) GetSupplierByID(id int) (*models.Supplier, error) {
 	return &supplier, nil
 }
 
-func (s SupplierRepository) GetAllSuppliers() (*[]models.Supplier, error) {
+func (s SupplierRepository) GetAll() (*[]models.Supplier, error) {
 	var suppliers []models.Supplier
 	rows, err := s.db.Query("SELECT * FROM supliers")
 
@@ -85,67 +75,31 @@ func (s SupplierRepository) GetAllSuppliers() (*[]models.Supplier, error) {
 	return &suppliers, nil
 }
 
-func (s SupplierRepository) EditSupplier(supplier *models.Supplier) (sql.Result, error) {
-	tx, err := s.db.Begin()
+func (s SupplierRepository) Update(supplier *models.Supplier) (sql.Result, error) {
+	result, err := s.db.Exec("UPDATE supliers SET name = ?, updated=? WHERE id=?", supplier.Name, time.Now(), supplier.ID)
 	if err != nil {
-		return nil, err
-	}
-	result, err := tx.Exec("UPDATE supliers SET name = ?, updated=? WHERE id=?", supplier.Name, time.Now(), supplier.ID)
-	if err != nil {
-		err = tx.Rollback()
-		return nil, err
-	}
-	err = tx.Commit()
-	if err != nil {
-		err = tx.Rollback()
 		return nil, err
 	}
 	return result, nil
 }
 
-func (s SupplierRepository) DeleteSupplier(id int) (sql.Result, error) {
-	tx, err := s.db.Begin()
+func (s SupplierRepository) Delete(id int) (sql.Result, error) {
+	result, err := s.db.Exec("DELETE FROM supliers WHERE id=?", id)
 	if err != nil {
-		return nil, err
-	}
-	result, err := tx.Exec("DELETE FROM supliers WHERE id=?", id)
-	if err != nil {
-		err = tx.Rollback()
-		if err != nil {
-			return nil, err
-		}
-		return nil, err
-	}
-	err = tx.Commit()
-	if err != nil {
-		err = tx.Rollback()
 		return nil, err
 	}
 	return result, nil
 }
 
-func (s SupplierRepository) DeleteAllSuppliers() (sql.Result, error) {
-	tx, err := s.db.Begin()
+func (s SupplierRepository) Truncate() (sql.Result, error) {
+	result, err := s.db.Exec("DELETE FROM supliers")
 	if err != nil {
-		return nil, err
-	}
-	result, err := tx.Exec("DELETE FROM supliers")
-	if err != nil {
-		err = tx.Rollback()
-		if err != nil {
-			return nil, err
-		}
-		return nil, err
-	}
-	err = tx.Commit()
-	if err != nil {
-		err = tx.Rollback()
 		return nil, err
 	}
 	return result, nil
 }
 
-func (s SupplierRepository) SearchSupplierByID(id int) (bool, error) {
+func (s SupplierRepository) SearchByID(id int) (bool, error) {
 	rows, err := s.db.Query("SELECT * FROM supliers WHERE id=?", id)
 
 	if err != nil {

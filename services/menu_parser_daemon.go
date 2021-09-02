@@ -24,10 +24,6 @@ type MenuParserI interface {
 	TimedParsing(frequencySeconds int)
 	productWork(products *[]models.ParserProduct, restID int)
 	restaurantsWork(restaurants *[]models.ParserRestaurant)
-	//getAllRestaurants () (*[]models.ParserRestaurant, error)
-	//getProductsFromRestByID (id int) (*[]models.ParserProduct, error)
-	//transformRestaurantModel (parsedRestaurant *models.ParserRestaurant) (*models.Supplier, error)
-	//transformProductModel (parsedProduct *models.ParserProduct) (*models.Product, error)
 }
 
 type MenuParser struct {
@@ -37,15 +33,13 @@ type MenuParser struct {
 }
 
 func (m MenuParser) TimedParsing(frequencySeconds int) {
-	for i := 0; ; i++ {
-
+	for {
 		time.Sleep(time.Duration(frequencySeconds) * time.Second)
 		restaurants, err := getAllRestaurants()
 		if err != nil {
 			m.logger.ErrorLog("Fail to get restaurants", err)
 		}
-		m.logger.InfoLog("iteration ", i)
-		go m.restaurantsWork(&restaurants)
+		m.restaurantsWork(&restaurants)
 	}
 }
 
@@ -115,13 +109,13 @@ func transformProductModel(parsedProduct models.ParserProduct, id int) *models.P
 
 func (m MenuParser) restaurantsWork(restaurants *[]models.ParserRestaurant) {
 	for i := range *restaurants {
-		dbSupplier, err := m.restaurantRepo.SearchSupplierByID((*restaurants)[i].ID)
+		dbSupplier, err := m.restaurantRepo.SearchByID((*restaurants)[i].ID)
 		if err != nil {
 			m.logger.ErrorLog("fail to search supplier", err)
 			return
 		}
 		if dbSupplier {
-			result, err := m.restaurantRepo.EditSupplier(transformRestaurantModel((*restaurants)[i]))
+			result, err := m.restaurantRepo.Update(transformRestaurantModel((*restaurants)[i]))
 			if err != nil {
 				m.logger.ErrorLog("fail to edit supplier", err)
 				return
@@ -133,7 +127,7 @@ func (m MenuParser) restaurantsWork(restaurants *[]models.ParserRestaurant) {
 			}
 			m.logger.InfoLog("rows in restaurant renewed", rowsAffected)
 		} else {
-			result, err := m.restaurantRepo.CreateNewSupplier(transformRestaurantModel((*restaurants)[i]))
+			result, err := m.restaurantRepo.Create(transformRestaurantModel((*restaurants)[i]))
 			if err != nil {
 				m.logger.ErrorLog("fail to create new supplier", err)
 				return
@@ -153,14 +147,14 @@ func (m MenuParser) restaurantsWork(restaurants *[]models.ParserRestaurant) {
 func (m MenuParser) productWork(products *[]models.ParserProduct, restID int) {
 	for i := range *products {
 		product := transformProductModel((*products)[i], restID)
-		productID, err := m.productsRepo.SearchProductBySupIDAndName(product.IDSupplier, product.Name)
+		productID, err := m.productsRepo.SearchBySupIDAndName(product.IDSupplier, product.Name)
 		if err != nil {
 			m.logger.ErrorLog("fail to search existed product", err)
 			return
 		}
 		if productID != 0 {
 			product.ID = productID
-			result, err := m.productsRepo.EditProduct(product)
+			result, err := m.productsRepo.Update(product)
 			if err != nil {
 				m.logger.ErrorLog("fail to edit existed product", err)
 				return
@@ -172,7 +166,7 @@ func (m MenuParser) productWork(products *[]models.ParserProduct, restID int) {
 			}
 			m.logger.InfoLog(" rows in product renewed", rowsAffected)
 		} else {
-			result, err := m.productsRepo.CreateNewProduct(product)
+			result, err := m.productsRepo.Create(product)
 			if err != nil {
 				m.logger.ErrorLog("fail to create new product", err)
 				return
