@@ -30,7 +30,7 @@ func main() {
 	profileHandler := handlers.NewProfileHandler(userService, tokenService, myLogger)
 
 	menuParser := services.NewMenuParser(myLogger, suppliersRepository, productRepository)
-	go menuParser.TimedParsing(60)
+	go menuParser.TimedParsing(10)
 
 	http.HandleFunc("/getall", profileHandler.GetAll)
 	http.HandleFunc("/registration", profileHandler.CreateNewUser)

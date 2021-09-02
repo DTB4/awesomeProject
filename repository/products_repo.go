@@ -27,7 +27,6 @@ type ProductsRepository struct {
 }
 
 func (p ProductsRepository) Create(product *models.Product) (sql.Result, error) {
-
 	result, err := p.db.Exec("INSERT INTO products (name, type, description, price , created, updated, id_supplier, img_url, ingredients) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", product.Name, product.Type, product.Description, product.Price, time.Now(), time.Now(), product.IDSupplier, product.ImgURL, product.Ingredients)
 	if err != nil {
 		return nil, err
@@ -58,7 +57,7 @@ func (p ProductsRepository) GetAll() (*[]models.Product, error) {
 	var products []models.Product
 	rows, err := p.db.Query("SELECT * FROM products")
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	product := models.Product{}
 	for rows.Next() {
@@ -79,7 +78,7 @@ func (p ProductsRepository) GetAllBySupplierID(id int) (*[]models.Product, error
 	var products []models.Product
 	rows, err := p.db.Query("SELECT * FROM products WHERE id=?", id)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	product := models.Product{}
 	for rows.Next() {
@@ -122,9 +121,8 @@ func (p ProductsRepository) Truncate() (sql.Result, error) {
 
 func (p ProductsRepository) SearchBySupIDAndName(supplierID int, name string) (int, error) {
 	rows, err := p.db.Query("SELECT id FROM products WHERE id_supplier=? AND name=?", supplierID, name)
-
 	if err != nil {
-		log.Fatal(err)
+		return 0, err
 	}
 	product := models.Product{}
 	for rows.Next() {
@@ -132,11 +130,10 @@ func (p ProductsRepository) SearchBySupIDAndName(supplierID int, name string) (i
 		if err != nil {
 			log.Println(err)
 		}
-		return product.ID, nil
 	}
 	err = rows.Close()
 	if err != nil {
 		return 0, err
 	}
-	return 0, err
+	return product.ID, nil
 }

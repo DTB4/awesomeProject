@@ -31,7 +31,7 @@ func (u UserService) CreateNewUser(user *models.User) (sql.Result, error) {
 
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(user.PasswordHash), bcrypt.DefaultCost)
 	user.PasswordHash = string(hashedPassword)
-	result, err := u.UserRepository.CreateNewUser(user)
+	result, err := u.UserRepository.Create(user)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (u UserService) CreateNewUser(user *models.User) (sql.Result, error) {
 }
 
 func (u UserService) GetUserByID(userID int) (*models.User, error) {
-	user, err := u.UserRepository.GetUserByID(userID)
+	user, err := u.UserRepository.GetByID(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +47,7 @@ func (u UserService) GetUserByID(userID int) (*models.User, error) {
 }
 
 func (u UserService) GetUserByEmail(email string) (*models.User, error) {
-	user, err := u.UserRepository.GetUserByEmail(email)
+	user, err := u.UserRepository.GetByEmail(email)
 	if err != nil {
 		return nil, err
 	}
@@ -55,7 +55,7 @@ func (u UserService) GetUserByEmail(email string) (*models.User, error) {
 }
 
 func (u UserService) EditUserProfile(user *models.User) (sql.Result, error) {
-	result, err := u.UserRepository.EditUserData(user)
+	result, err := u.UserRepository.Update(user)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (u UserService) EditUserProfile(user *models.User) (sql.Result, error) {
 }
 
 func (u UserService) GetAllUsers() (*[]models.User, error) {
-	users, err := u.UserRepository.GetAllUsers()
+	users, err := u.UserRepository.GetAll()
 	if err != nil {
 		return nil, err
 	}

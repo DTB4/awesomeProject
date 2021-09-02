@@ -36,7 +36,6 @@ func (s SupplierRepository) Create(supplier *models.Supplier) (sql.Result, error
 func (s SupplierRepository) GetByID(id int) (*models.Supplier, error) {
 	supplier := models.Supplier{}
 	rows, err := s.db.Query("SELECT * FROM supliers WHERE id=?", id)
-
 	if err != nil {
 		return nil, err
 	}
@@ -101,14 +100,13 @@ func (s SupplierRepository) Truncate() (sql.Result, error) {
 
 func (s SupplierRepository) SearchByID(id int) (bool, error) {
 	rows, err := s.db.Query("SELECT * FROM supliers WHERE id=?", id)
-
 	if err != nil {
 		return false, err
 	}
 	if rows.Next() {
+		err = rows.Close()
 		return true, nil
 	}
-	err = rows.Close()
 	if err != nil {
 		return false, err
 	}

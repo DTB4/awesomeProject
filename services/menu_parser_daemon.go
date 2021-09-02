@@ -23,7 +23,7 @@ func NewMenuParser(logger *logger.Logger, restaurantRepo *repository.SupplierRep
 type MenuParserI interface {
 	TimedParsing(frequencySeconds int)
 	productWork(products *[]models.ParserProduct, restID int)
-	restaurantsWork(restaurants *[]models.ParserRestaurant)
+	restaurantCheckUpdateCreate(restaurants *[]models.ParserRestaurant)
 }
 
 type MenuParser struct {
@@ -39,7 +39,9 @@ func (m MenuParser) TimedParsing(frequencySeconds int) {
 		if err != nil {
 			m.logger.ErrorLog("Fail to get restaurants", err)
 		}
-		m.restaurantsWork(&restaurants)
+		for i := range restaurants {
+			go m.restaurantCheckUpdateCreate(&restaurants[i])
+		}
 	}
 }
 
@@ -88,7 +90,7 @@ func getProductsFromRestByID(id int) (*[]models.ParserProduct, error) {
 	return &products.Menu, nil
 }
 
-func transformRestaurantModel(parsedRestaurant models.ParserRestaurant) *models.Supplier {
+func transformRestaurantModel(parsedRestaurant *models.ParserRestaurant) *models.Supplier {
 	supplier := models.Supplier{
 		ID:   parsedRestaurant.ID,
 		Name: parsedRestaurant.Name,
@@ -96,7 +98,7 @@ func transformRestaurantModel(parsedRestaurant models.ParserRestaurant) *models.
 	return &supplier
 }
 
-func transformProductModel(parsedProduct models.ParserProduct, id int) *models.Product {
+func transformProductModel(parsedProduct *models.ParserProduct, id int) *models.Product {
 	product := models.Product{
 		Name:        parsedProduct.Name,
 		Type:        parsedProduct.Type,
@@ -107,76 +109,79 @@ func transformProductModel(parsedProduct models.ParserProduct, id int) *models.P
 	return &product
 }
 
-func (m MenuParser) restaurantsWork(restaurants *[]models.ParserRestaurant) {
-	for i := range *restaurants {
-		dbSupplier, err := m.restaurantRepo.SearchByID((*restaurants)[i].ID)
+func (m MenuParser) restaurantCheckUpdateCreate(restaurant *models.ParserRestaurant) {
+
+	dbSupplier, err := m.restaurantRepo.SearchByID(restaurant.ID)
+	if err != nil {
+		m.logger.ErrorLog("fail to search supplier", err)
+		return
+	}
+	if dbSupplier {
+		result, err := m.restaurantRepo.Update(transformRestaurantModel(restaurant))
 		if err != nil {
-			m.logger.ErrorLog("fail to search supplier", err)
+			m.logger.ErrorLog("fail to edit supplier", err)
 			return
 		}
-		if dbSupplier {
-			result, err := m.restaurantRepo.Update(transformRestaurantModel((*restaurants)[i]))
-			if err != nil {
-				m.logger.ErrorLog("fail to edit supplier", err)
-				return
-			}
-			rowsAffected, err := result.RowsAffected()
-			if err != nil {
-				m.logger.ErrorLog("fail to get rowsAffected from result", err)
-				return
-			}
-			m.logger.InfoLog("rows in restaurant renewed", rowsAffected)
-		} else {
-			result, err := m.restaurantRepo.Create(transformRestaurantModel((*restaurants)[i]))
-			if err != nil {
-				m.logger.ErrorLog("fail to create new supplier", err)
-				return
-			}
-			lastRestID, err := result.LastInsertId()
-			if err != nil {
-				m.logger.ErrorLog("fail to get lastInsertID from result", err)
-				return
-			}
-			m.logger.InfoLog("Saved restaurant with ID ", lastRestID)
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			m.logger.ErrorLog("fail to get rowsAffected from result", err)
+			return
 		}
-		products, err := getProductsFromRestByID((*restaurants)[i].ID)
-		m.productWork(products, (*restaurants)[i].ID)
+		m.logger.InfoLog("rows in restaurant renewed", rowsAffected)
+
+	} else {
+		result, err := m.restaurantRepo.Create(transformRestaurantModel(restaurant))
+		if err != nil {
+			m.logger.ErrorLog("fail to create new supplier", err)
+			return
+		}
+		lastRestID, err := result.LastInsertId()
+		if err != nil {
+			m.logger.ErrorLog("fail to get lastInsertID from result", err)
+			return
+		}
+		m.logger.InfoLog("Saved restaurant with ID ", lastRestID)
 	}
+	products, err := getProductsFromRestByID(restaurant.ID)
+	for i := range *products {
+		go m.productCheckUpdateCreate(&(*products)[i], restaurant.ID)
+	}
+
 }
 
-func (m MenuParser) productWork(products *[]models.ParserProduct, restID int) {
-	for i := range *products {
-		product := transformProductModel((*products)[i], restID)
-		productID, err := m.productsRepo.SearchBySupIDAndName(product.IDSupplier, product.Name)
+func (m MenuParser) productCheckUpdateCreate(parsedproduct *models.ParserProduct, restID int) {
+
+	product := transformProductModel(parsedproduct, restID)
+	productID, err := m.productsRepo.SearchBySupIDAndName(product.IDSupplier, product.Name)
+	if err != nil {
+		m.logger.ErrorLog("fail to search existed product", err)
+		return
+	}
+	if productID != 0 {
+		product.ID = productID
+		result, err := m.productsRepo.Update(product)
 		if err != nil {
-			m.logger.ErrorLog("fail to search existed product", err)
+			m.logger.ErrorLog("fail to edit existed product", err)
 			return
 		}
-		if productID != 0 {
-			product.ID = productID
-			result, err := m.productsRepo.Update(product)
-			if err != nil {
-				m.logger.ErrorLog("fail to edit existed product", err)
-				return
-			}
-			rowsAffected, err := result.RowsAffected()
-			if err != nil {
-				m.logger.ErrorLog("fail to get rowsAffected from result", err)
-				return
-			}
-			m.logger.InfoLog(" rows in product renewed", rowsAffected)
-		} else {
-			result, err := m.productsRepo.Create(product)
-			if err != nil {
-				m.logger.ErrorLog("fail to create new product", err)
-				return
-			}
-			lastProdID, err := result.LastInsertId()
-			if err != nil {
-				m.logger.ErrorLog("fail to get lastInsertID from result", err)
-				return
-			}
-			m.logger.InfoLog("Product with ID, saved to DB", lastProdID)
+		rowsAffected, err := result.RowsAffected()
+		if err != nil {
+			m.logger.ErrorLog("fail to get rowsAffected from result", err)
+			return
 		}
+		m.logger.InfoLog(" rows in product renewed", rowsAffected)
+	} else {
+		result, err := m.productsRepo.Create(product)
+		if err != nil {
+			m.logger.ErrorLog("fail to create new product", err)
+			return
+		}
+		lastProdID, err := result.LastInsertId()
+		if err != nil {
+			m.logger.ErrorLog("fail to get lastInsertID from result", err)
+			return
+		}
+		m.logger.InfoLog("Product with ID, saved to DB", lastProdID)
 	}
+
 }

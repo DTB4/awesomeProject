@@ -3,8 +3,6 @@ package repository
 import (
 	"awesomeProject/models"
 	"database/sql"
-	"fmt"
-	"log"
 	"time"
 )
 
@@ -15,38 +13,40 @@ func NewOrderRepository(db *sql.DB) *OrderRepository {
 }
 
 type OrderRepositoryI interface {
-	CreateNewOrder(order *models.Order) (sql.Result, error)
-	GetOrderByID(orderID int) (*models.Order, error)
+	Create(order *models.Order) (sql.Result, error)
+	GetByID(orderID int) (*models.Order, error)
 	GetUserOrders(userID int) (*[]models.Order, error)
-	EditOrder(order *models.Order) (sql.Result, error)
-	DeleteOrder(id int) (sql.Result, error)
+	Update(order *models.Order) (sql.Result, error)
+	Delete(id int) (sql.Result, error)
 }
 
 type OrderRepository struct {
 	db *sql.DB
 }
 
-func (or OrderRepository) CreateNewOrder(order *models.Order) (sql.Result, error) {
+func (or OrderRepository) Create(order *models.Order) (sql.Result, error) {
 	result, err := or.db.Exec("INSERT INTO orders (id, id_user, status, created) VALUES (?, ?, ?, ?)", order.ID, order.IDUser, "created", time.Now())
 	if err != nil {
 		return nil, err
 	}
-	log.Println(result)
 	return result, nil
 }
 
-func (or OrderRepository) GetOrderByID(orderID int) (*models.Order, error) {
+func (or OrderRepository) GetByID(orderID int) (*models.Order, error) {
 	order := models.Order{}
 	rows, err := or.db.Query("SELECT * FROM orders WHERE id=?", orderID)
 	if err != nil {
 		return nil, err
 	}
 	for rows.Next() {
-		err := rows.Scan(&order.ID, &order.IDUser, &order.Status, &order.Created, &order.Updated)
+		err = rows.Scan(&order.ID, &order.IDUser, &order.Status, &order.Created, &order.Updated)
 		if err != nil {
-			log.Println(err)
+			return nil, err
 		}
-		fmt.Println(order)
+	}
+	err = rows.Close()
+	if err != nil {
+		return nil, err
 	}
 	return &order, nil
 }
@@ -59,16 +59,20 @@ func (or OrderRepository) GetUserOrders(userID int) (*[]models.Order, error) {
 	}
 	order := models.Order{}
 	for rows.Next() {
-		err := rows.Scan(&order.ID, &order.IDUser, &order.Status, &order.Created, &order.Updated)
+		err = rows.Scan(&order.ID, &order.IDUser, &order.Status, &order.Created, &order.Updated)
 		if err != nil {
-			log.Println(err)
+			return nil, err
 		}
 		orders = append(orders, order)
+	}
+	err = rows.Close()
+	if err != nil {
+		return nil, err
 	}
 	return &orders, nil
 }
 
-func (or OrderRepository) EditOrder(order *models.Order) (sql.Result, error) {
+func (or OrderRepository) Update(order *models.Order) (sql.Result, error) {
 	result, err := or.db.Exec("UPDATE orders SET status=?, updated=? WHERE id=?", order.Status, time.Now(), order.ID)
 	if err != nil {
 		return nil, err
@@ -76,7 +80,7 @@ func (or OrderRepository) EditOrder(order *models.Order) (sql.Result, error) {
 	return result, nil
 }
 
-func (or OrderRepository) DeleteOrder(id int) (sql.Result, error) {
+func (or OrderRepository) Delete(id int) (sql.Result, error) {
 	result, err := or.db.Exec("DELETE from orders WHERE id=?", id)
 	if err != nil {
 		return nil, err
