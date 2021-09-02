@@ -3,7 +3,6 @@ package repository
 import (
 	"awesomeProject/models"
 	"database/sql"
-	"fmt"
 	"log"
 	"time"
 )
@@ -37,7 +36,7 @@ func (u UserRepository) GetUserByEmail(email string) (*models.User, error) {
 		if err != nil {
 			log.Println(err)
 		}
-		fmt.Println(user)
+		//fmt.Println(user)
 	}
 	return &user, nil
 }
@@ -51,9 +50,9 @@ func (u UserRepository) GetUserByID(userID int) (*models.User, error) {
 	for rows.Next() {
 		err := rows.Scan(&user.ID, &user.FirstName, &user.SecondName, &user.Email, &user.PasswordHash, &user.Created, &user.Updated, &user.Deleted)
 		if err != nil {
-			log.Println(err)
+			//log.Println(err)
 		}
-		fmt.Println(user)
+		//fmt.Println(user)
 	}
 	return &user, nil
 }
