@@ -36,13 +36,15 @@ type MenuParser struct {
 	logger         *logger.Logger
 }
 
-func (m MenuParser) TimedParsing(frequencyMinutes int) {
-	for {
-		time.Sleep(time.Duration(frequencyMinutes) * time.Second)
+func (m MenuParser) TimedParsing(frequencySeconds int) {
+	for i := 0; ; i++ {
+
+		time.Sleep(time.Duration(frequencySeconds) * time.Second)
 		restaurants, err := getAllRestaurants()
 		if err != nil {
 			m.logger.ErrorLog("Fail to get restaurants", err)
 		}
+		m.logger.InfoLog("iteration ", i)
 		go m.restaurantsWork(&restaurants)
 	}
 }
@@ -144,7 +146,7 @@ func (m MenuParser) restaurantsWork(restaurants *[]models.ParserRestaurant) {
 			m.logger.InfoLog("Saved restaurant with ID ", lastRestID)
 		}
 		products, err := getProductsFromRestByID((*restaurants)[i].ID)
-		go m.productWork(products, (*restaurants)[i].ID)
+		m.productWork(products, (*restaurants)[i].ID)
 	}
 }
 
