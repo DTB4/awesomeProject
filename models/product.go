@@ -21,6 +21,7 @@ type ResponseBodyMenu struct {
 }
 
 type ParserProduct struct {
+	Image       string   `json:"image"`
 	Name        string   `json:"name"`
 	Price       float32  `json:"price"`
 	Type        string   `json:"type"`

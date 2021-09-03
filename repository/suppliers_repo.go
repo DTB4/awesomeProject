@@ -75,7 +75,7 @@ func (s SupplierRepository) GetAll() (*[]models.Supplier, error) {
 }
 
 func (s SupplierRepository) Update(supplier *models.Supplier) (sql.Result, error) {
-	result, err := s.db.Exec("UPDATE supliers SET name = ?, updated=? WHERE id=?", supplier.Name, time.Now(), supplier.ID)
+	result, err := s.db.Exec("UPDATE supliers SET name = ?, updated=?, img_url=? WHERE id=?", supplier.Name, time.Now(), supplier.ImgURL, supplier.ID)
 	if err != nil {
 		return nil, err
 	}

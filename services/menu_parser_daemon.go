@@ -92,14 +92,16 @@ func getProductsFromRestByID(id int) (*[]models.ParserProduct, error) {
 
 func transformRestaurantModel(parsedRestaurant *models.ParserRestaurant) *models.Supplier {
 	supplier := models.Supplier{
-		ID:   parsedRestaurant.ID,
-		Name: parsedRestaurant.Name,
+		ImgURL: parsedRestaurant.Image,
+		ID:     parsedRestaurant.ID,
+		Name:   parsedRestaurant.Name,
 	}
 	return &supplier
 }
 
 func transformProductModel(parsedProduct *models.ParserProduct, id int) *models.Product {
 	product := models.Product{
+		ImgURL:      parsedProduct.Image,
 		Name:        parsedProduct.Name,
 		Type:        parsedProduct.Type,
 		Price:       parsedProduct.Price,
