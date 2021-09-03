@@ -28,7 +28,7 @@ type UserRepository struct {
 
 func (u UserRepository) GetByEmail(email string) (*models.User, error) {
 	user := models.User{}
-	rows, err := u.db.Query("SELECT * FROM users WHERE email=?", email)
+	rows, err := u.db.Query("SELECT * FROM users WHERE email=? AND deleted=false", email)
 	if err != nil {
 		return nil, err
 	}
@@ -41,9 +41,9 @@ func (u UserRepository) GetByEmail(email string) (*models.User, error) {
 	return &user, nil
 }
 
-func (u UserRepository) GetByID(userID int) (*models.User, error) {
+func (u UserRepository) GetByID(id int) (*models.User, error) {
 	user := models.User{}
-	rows, err := u.db.Query("SELECT * FROM users WHERE id=?", userID)
+	rows, err := u.db.Query("SELECT * FROM users WHERE id=?", id)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func (u UserRepository) Create(user *models.User) (sql.Result, error) {
 }
 
 func (u UserRepository) Update(user *models.User) (sql.Result, error) {
-	result, err := u.db.Exec("UPDATE users SET first_name = ?, second_name = ?, email=?, password_hash=?, updated=?, deleted=? WHERE id=?", user.FirstName, user.SecondName, user.Email, user.PasswordHash, time.Now(), user.Deleted, user.ID)
+	result, err := u.db.Exec("UPDATE users SET first_name = ?, second_name = ?, email=?, password_hash=?, updated=? WHERE id=? AND deleted=false", user.FirstName, user.SecondName, user.Email, user.PasswordHash, time.Now(), user.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -99,5 +99,4 @@ func (u UserRepository) Delete(id int) (sql.Result, error) {
 		return nil, err
 	}
 	return result, nil
-
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"awesomeProject/dbconstructor"
 	"awesomeProject/handlers"
+	"awesomeProject/midleware"
 	"awesomeProject/parser"
 	"awesomeProject/repository"
 	"awesomeProject/services"
@@ -27,8 +28,12 @@ func main() {
 	productRepository := repository.NewProductsRepository(db)
 	userRepository := repository.NewUserRepository(db)
 	orderRepository := repository.NewOrderRepository(db)
-	userService := services.NewUserService(orderRepository, userRepository)
+	orderProductsRepository := repository.NewOrderProductsRepository(db)
+	orderService := services.NewOrderService(orderRepository, orderProductsRepository)
+	userService := services.NewUserService(userRepository)
 	tokenService := services.NewTokenService()
+	authHandler := midleware.NewAuthHandler(tokenService, myLogger)
+	orderHandler := handlers.NewOrderHandler(orderService, myLogger)
 	profileHandler := handlers.NewProfileHandler(userService, tokenService, myLogger)
 	url := os.Getenv("URL_FOR_API_PARSER")
 	format := os.Getenv("FORMAT_STRING_FOR_API_URL")
@@ -36,11 +41,15 @@ func main() {
 	menuParser := parser.NewMenuParser(url, format, myLogger, suppliersRepository, productRepository)
 	go menuParser.TimedParsing(parserDelay)
 
-	http.HandleFunc("/getall", profileHandler.GetAll)
 	http.HandleFunc("/registration", profileHandler.CreateNewUser)
-	http.HandleFunc("/profile", profileHandler.TokenCheck(profileHandler.ShowUserProfile))
-	http.HandleFunc("/editprofile", profileHandler.TokenCheck(profileHandler.EditUserProfile))
+	http.HandleFunc("/profile", authHandler.TokenCheck(profileHandler.ShowUserProfile))
+	http.HandleFunc("/editprofile", authHandler.TokenCheck(profileHandler.EditUserProfile))
 	http.HandleFunc("/login", profileHandler.Login)
+
+	http.HandleFunc("/createorder", authHandler.TokenCheck(orderHandler.Create))
+	http.HandleFunc("/getorder", authHandler.TokenCheck(orderHandler.GetByID))
+	http.HandleFunc("/getmyorders", authHandler.TokenCheck(orderHandler.GetAll))
+	http.HandleFunc("/updateorder", authHandler.TokenCheck(orderHandler.Update))
 
 	log.Fatal(http.ListenAndServe(os.Getenv("HTTP_PORT"), nil))
 }
