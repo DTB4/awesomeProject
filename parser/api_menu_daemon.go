@@ -1,4 +1,4 @@
-package services
+package parser
 
 import (
 	"awesomeProject/models"
@@ -8,15 +8,16 @@ import (
 	"github.com/DTB4/logger/v2"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 	"time"
 )
 
-func NewMenuParser(logger *logger.Logger, restaurantRepo *repository.SupplierRepository, productsRepo *repository.ProductsRepository) *MenuParser {
+func NewMenuParser(url, format string, logger *logger.Logger, restaurantRepo *repository.SupplierRepository, productsRepo *repository.ProductsRepository) *MenuParser {
 	return &MenuParser{
 		restaurantRepo: restaurantRepo,
 		productsRepo:   productsRepo,
 		logger:         logger,
+		url:            url,
+		format:         format,
 	}
 }
 
@@ -30,23 +31,26 @@ type MenuParser struct {
 	restaurantRepo *repository.SupplierRepository
 	productsRepo   *repository.ProductsRepository
 	logger         *logger.Logger
+	url            string
+	format         string
 }
 
 func (m MenuParser) TimedParsing(frequencySeconds int) {
 	for {
 		time.Sleep(time.Duration(frequencySeconds) * time.Second)
-		restaurants, err := getAllRestaurants()
+		restaurants, err := m.getAllRestaurants()
 		if err != nil {
 			m.logger.ErrorLog("Fail to get restaurants", err)
 		}
+
 		for i := range restaurants {
 			go m.restaurantCheckUpdateCreate(&restaurants[i])
 		}
 	}
 }
 
-func getAllRestaurants() ([]models.ParserRestaurant, error) {
-	url := "http://foodapi.true-tech.php.nixdev.co/restaurants"
+func (m MenuParser) getAllRestaurants() ([]models.ParserRestaurant, error) {
+	url := m.url
 
 	response, err := http.Get(url)
 	if err != nil {
@@ -68,8 +72,8 @@ func getAllRestaurants() ([]models.ParserRestaurant, error) {
 	return responseBodyRestaurants.Restaurants, nil
 }
 
-func getProductsFromRestByID(id int) (*[]models.ParserProduct, error) {
-	url := "http://foodapi.true-tech.php.nixdev.co/restaurants/" + strconv.Itoa(id) + "/menu"
+func (m MenuParser) getProductsFromRestByID(id int) (*[]models.ParserProduct, error) {
+	url := fmt.Sprintf(m.format, m.url, id)
 
 	response, err := http.Get(url)
 	if err != nil {
@@ -144,7 +148,7 @@ func (m MenuParser) restaurantCheckUpdateCreate(restaurant *models.ParserRestaur
 		}
 		m.logger.InfoLog("Saved restaurant with ID ", lastRestID)
 	}
-	products, err := getProductsFromRestByID(restaurant.ID)
+	products, err := m.getProductsFromRestByID(restaurant.ID)
 	for i := range *products {
 		go m.productCheckUpdateCreate(&(*products)[i], restaurant.ID)
 	}
