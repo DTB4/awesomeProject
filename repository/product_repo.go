@@ -96,7 +96,15 @@ func (p ProductsRepository) GetAllBySupplierID(id int) (*[]models.Product, error
 }
 
 func (p ProductsRepository) Update(product *models.Product) (sql.Result, error) {
-	result, err := p.db.Exec("UPDATE products SET name=?, type=?, description=?, price=?, updated=?, img_url=?, ingredients=? WHERE id=?", product.Name, product.Type, product.Description, product.Price, time.Now(), product.ImgURL, product.Ingredients, product.ID)
+	result, err := p.db.Exec("UPDATE products SET name=?, type=?, description=?, price=?, updated=current_time, img_url=?, ingredients=? WHERE id=?", product.Name, product.Type, product.Description, product.Price, product.ImgURL, product.Ingredients, product.ID)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (p ProductsRepository) SoftDelete(id int) (sql.Result, error) {
+	result, err := p.db.Exec("UPDATE products SET deleted=true, updated=current_time WHERE id=?", id)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +112,7 @@ func (p ProductsRepository) Update(product *models.Product) (sql.Result, error) 
 }
 
 func (p ProductsRepository) Delete(id int) (sql.Result, error) {
-	result, err := p.db.Exec("DELETE from products WHERE id=?", id)
+	result, err := p.db.Exec("DELETE FROM products WHERE id=?", id)
 	if err != nil {
 		return nil, err
 	}
@@ -113,6 +121,14 @@ func (p ProductsRepository) Delete(id int) (sql.Result, error) {
 
 func (p ProductsRepository) Truncate() (sql.Result, error) {
 	result, err := p.db.Exec("DELETE FROM products")
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (p ProductsRepository) SoftDeleteALL() (sql.Result, error) {
+	result, err := p.db.Exec("UPDATE products SET deleted=true, updated=current_time WHERE deleted!=true")
 	if err != nil {
 		return nil, err
 	}

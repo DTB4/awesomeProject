@@ -90,8 +90,24 @@ func (s SupplierRepository) Delete(id int) (sql.Result, error) {
 	return result, nil
 }
 
+func (s SupplierRepository) SoftDelete(id int) (sql.Result, error) {
+	result, err := s.db.Exec("UPDATE supliers SET deleted=true, updated=current_time WHERE id=?", id)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func (s SupplierRepository) Truncate() (sql.Result, error) {
 	result, err := s.db.Exec("DELETE FROM supliers")
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (s SupplierRepository) SoftDeleteALL() (sql.Result, error) {
+	result, err := s.db.Exec("UPDATE supliers SET deleted=true, updated=current_time WHERE deleted!=true")
 	if err != nil {
 		return nil, err
 	}
