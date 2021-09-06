@@ -18,7 +18,9 @@ type ProductsRepositoryI interface {
 	GetAllBySupplierID(id int) (*[]models.Product, error)
 	Update(product *models.Product) (sql.Result, error)
 	Delete(id int) (sql.Result, error)
+	SoftDelete(id int) (sql.Result, error)
 	Truncate() (sql.Result, error)
+	SoftDeleteAll() (sql.Result, error)
 	SearchBySupIDAndName(supplierID int, name string) (int, error)
 }
 
@@ -111,6 +113,14 @@ func (p ProductsRepository) Delete(id int) (sql.Result, error) {
 	return result, nil
 }
 
+func (p ProductsRepository) SoftDelete(id int) (sql.Result, error) {
+	result, err := p.db.Exec("UPDATE products SET deleted=?, updated=? WHERE id=?", true, time.Now(), id)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func (p ProductsRepository) Truncate() (sql.Result, error) {
 	result, err := p.db.Exec("DELETE FROM products")
 	if err != nil {
@@ -119,8 +129,16 @@ func (p ProductsRepository) Truncate() (sql.Result, error) {
 	return result, nil
 }
 
+func (p ProductsRepository) SoftDeleteAll() (sql.Result, error) {
+	result, err := p.db.Exec("UPDATE products SET deleted=?, updated=? WHERE deleted=?", true, time.Now(), false)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
 func (p ProductsRepository) SearchBySupIDAndName(supplierID int, name string) (int, error) {
-	rows, err := p.db.Query("SELECT id FROM products WHERE id_supplier=? AND name=?", supplierID, name)
+	rows, err := p.db.Query("SELECT id FROM products WHERE id_supplier=? AND name=? AND deleted=?", supplierID, name, false)
 	if err != nil {
 		return 0, err
 	}
