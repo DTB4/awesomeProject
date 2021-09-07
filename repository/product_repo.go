@@ -27,7 +27,7 @@ type ProductsRepository struct {
 }
 
 func (p ProductsRepository) Create(product *models.Product) (sql.Result, error) {
-	result, err := p.db.Exec("INSERT INTO products (name, type, description, price , created, updated, id_supplier, img_url, ingredients) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", product.Name, product.Type, product.Description, product.Price, time.Now(), time.Now(), product.IDSupplier, product.ImgURL, product.Ingredients)
+	result, err := p.db.Exec("INSERT INTO products (id, name, type, description, price , created, updated, id_supplier, img_url, ingredients) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 0, product.Name, product.Type, product.Description, product.Price, time.Now(), time.Now(), product.IDSupplier, product.ImgURL, product.Ingredients)
 	if err != nil {
 		return nil, err
 	}

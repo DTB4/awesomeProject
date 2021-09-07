@@ -27,7 +27,7 @@ type SupplierRepository struct {
 }
 
 func (s SupplierRepository) Create(supplier *models.Supplier) (sql.Result, error) {
-	result, err := s.db.Exec("INSERT INTO supliers (id, name, description, created, updated, img_url) VALUES (?, ?, ?, ?, ?, ?)", supplier.ID, supplier.Name, supplier.Description, time.Now(), time.Now(), supplier.ImgURL)
+	result, err := s.db.Exec("INSERT INTO supliers (id, name, description, created, updated, img_url) VALUES (?, ?, ?, ?, ?, ?)", 0, supplier.Name, supplier.Description, time.Now(), time.Now(), supplier.ImgURL)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (s SupplierRepository) GetByID(id int) (*models.Supplier, error) {
 		return nil, err
 	}
 	for rows.Next() {
-		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Description, &supplier.Created, &supplier.Updated, &supplier.Deleted, supplier.ImgURL)
+		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Description, &supplier.Created, &supplier.Updated, &supplier.Deleted, &supplier.ImgURL)
 		if err != nil {
 			return nil, err
 		}
@@ -53,14 +53,14 @@ func (s SupplierRepository) GetByID(id int) (*models.Supplier, error) {
 	return &supplier, nil
 }
 
-func (s SupplierRepository) GetByName (name string) (*models.Supplier, error) {
+func (s SupplierRepository) GetByName(name string) (*models.Supplier, error) {
 	supplier := models.Supplier{}
 	rows, err := s.db.Query("SELECT * FROM supliers WHERE name=?", name)
 	if err != nil {
 		return nil, err
 	}
 	for rows.Next() {
-		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Description, &supplier.Created, &supplier.Updated, &supplier.Deleted, supplier.ImgURL)
+		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Description, &supplier.Created, &supplier.Updated, &supplier.Deleted, &supplier.ImgURL)
 		if err != nil {
 			return nil, err
 		}
@@ -81,7 +81,7 @@ func (s SupplierRepository) GetAll() (*[]models.Supplier, error) {
 	}
 	supplier := models.Supplier{}
 	for rows.Next() {
-		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Description, &supplier.Created, &supplier.Updated, &supplier.Deleted, supplier.ImgURL)
+		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Description, &supplier.Created, &supplier.Updated, &supplier.Deleted, &supplier.ImgURL)
 		if err != nil {
 			log.Println(err)
 		}
