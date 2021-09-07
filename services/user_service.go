@@ -3,6 +3,7 @@ package services
 import (
 	"awesomeProject/models"
 	"awesomeProject/repository"
+	"database/sql"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -26,19 +27,19 @@ type UserService struct {
 	UserRepository  repository.UserRepository
 }
 
-func (u UserService) CreateNewUser(user *models.User) error {
+func (u UserService) CreateNewUser(user *models.User) (sql.Result, error) {
 
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(user.PasswordHash), bcrypt.DefaultCost)
 	user.PasswordHash = string(hashedPassword)
-	err := u.UserRepository.CreateNewUser(user)
+	result, err := u.UserRepository.Create(user)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return result, nil
 }
 
 func (u UserService) GetUserByID(userID int) (*models.User, error) {
-	user, err := u.UserRepository.GetUserByID(userID)
+	user, err := u.UserRepository.GetByID(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -46,19 +47,19 @@ func (u UserService) GetUserByID(userID int) (*models.User, error) {
 }
 
 func (u UserService) GetUserByEmail(email string) (*models.User, error) {
-	user, err := u.UserRepository.GetUserByEmail(email)
+	user, err := u.UserRepository.GetByEmail(email)
 	if err != nil {
 		return nil, err
 	}
 	return user, nil
 }
 
-func (u UserService) EditUserProfile(user *models.User) error {
-	err := u.UserRepository.EditUserData(user)
+func (u UserService) EditUserProfile(user *models.User) (sql.Result, error) {
+	result, err := u.UserRepository.Update(user)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return result, nil
 }
 
 func (u UserService) GetAllUsers() (*[]models.User, error) {

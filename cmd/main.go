@@ -3,6 +3,7 @@ package main
 import (
 	"awesomeProject/dbconstructor"
 	"awesomeProject/handlers"
+	"awesomeProject/parser"
 	"awesomeProject/repository"
 	"awesomeProject/services"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -21,11 +23,18 @@ func main() {
 	myLogger := logger.NewLogger(os.Getenv("LOGS_DIRECTORY_PATH"))
 
 	db := dbconstructor.NewDB()
+	suppliersRepository := repository.NewSupplierRepository(db)
+	productRepository := repository.NewProductsRepository(db)
 	userRepository := repository.NewUserRepository(db)
 	orderRepository := repository.NewOrderRepository(db)
 	userService := services.NewUserService(orderRepository, userRepository)
 	tokenService := services.NewTokenService()
 	profileHandler := handlers.NewProfileHandler(userService, tokenService, myLogger)
+	url := os.Getenv("URL_FOR_API_PARSER")
+	format := os.Getenv("FORMAT_STRING_FOR_API_URL")
+	parserDelay, _ := strconv.Atoi(os.Getenv("PARSER_DELAY_SECONDS"))
+	menuParser := parser.NewMenuParser(url, format, myLogger, suppliersRepository, productRepository)
+	go menuParser.TimedParsing(parserDelay)
 
 	http.HandleFunc("/getall", profileHandler.GetAll)
 	http.HandleFunc("/registration", profileHandler.CreateNewUser)
