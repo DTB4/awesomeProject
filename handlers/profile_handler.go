@@ -179,3 +179,23 @@ func (p ProfileHandler) CreateNewUser(w http.ResponseWriter, req *http.Request) 
 		http.Error(w, "Only POST is Allowed", http.StatusMethodNotAllowed)
 	}
 }
+
+func (p ProfileHandler) TokenCheck(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		bearerString := req.Header.Get("Authorization")
+		tokenString := p.tokenService.ParseFromBearerString(bearerString)
+		accessSecretString := os.Getenv("ACCESS_SECRET_STRING")
+		claims, err := p.tokenService.Validate(tokenString, accessSecretString)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		curUser := models.ActiveUserData{
+			ID: claims.ID,
+		}
+		req = req.WithContext(context.WithValue(req.Context(), "CurrentUser", curUser))
+		next(w, req)
+	}
+}
+
