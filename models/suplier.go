@@ -8,7 +8,7 @@ type Supplier struct {
 	Description string    `json:"description"`
 	Created     time.Time `json:"created"`
 	Updated     time.Time `json:"updated"`
-	Deleted     time.Time `json:"deleted"`
+	Deleted     bool      `json:"deleted"`
 	ImgURL      string    `json:"img_url"`
 }
 

@@ -14,6 +14,7 @@ func NewSupplierRepository(db *sql.DB) *SupplierRepository {
 type SupplierRepositoryI interface {
 	Create(restaurant *models.Supplier) (sql.Result, error)
 	GetByID(id int) (*models.Supplier, error)
+	GetByName(name string) (*models.Supplier, error)
 	GetAll() (*[]models.Supplier, error)
 	Update(restaurant *models.Supplier) (sql.Result, error)
 	Delete(id int) (sql.Result, error)
@@ -36,6 +37,25 @@ func (s SupplierRepository) Create(supplier *models.Supplier) (sql.Result, error
 func (s SupplierRepository) GetByID(id int) (*models.Supplier, error) {
 	supplier := models.Supplier{}
 	rows, err := s.db.Query("SELECT * FROM supliers WHERE id=?", id)
+	if err != nil {
+		return nil, err
+	}
+	for rows.Next() {
+		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Description, &supplier.Created, &supplier.Updated, &supplier.Deleted, supplier.ImgURL)
+		if err != nil {
+			return nil, err
+		}
+	}
+	err = rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	return &supplier, nil
+}
+
+func (s SupplierRepository) GetByName (name string) (*models.Supplier, error) {
+	supplier := models.Supplier{}
+	rows, err := s.db.Query("SELECT * FROM supliers WHERE name=?", name)
 	if err != nil {
 		return nil, err
 	}
