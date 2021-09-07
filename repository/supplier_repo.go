@@ -4,7 +4,6 @@ import (
 	"awesomeProject/models"
 	"database/sql"
 	"log"
-	"time"
 )
 
 func NewSupplierRepository(db *sql.DB) *SupplierRepository {
@@ -20,6 +19,7 @@ type SupplierRepositoryI interface {
 	Delete(id int) (sql.Result, error)
 	Truncate() (sql.Result, error)
 	SearchByID(id int) (bool, error)
+	SoftDeleteNotUpdated() (sql.Result, error)
 }
 
 type SupplierRepository struct {
@@ -27,7 +27,7 @@ type SupplierRepository struct {
 }
 
 func (s SupplierRepository) Create(supplier *models.Supplier) (sql.Result, error) {
-	result, err := s.db.Exec("INSERT INTO supliers (id, name, description, created, updated, img_url) VALUES (?, ?, ?, ?, ?, ?)", 0, supplier.Name, supplier.Description, time.Now(), time.Now(), supplier.ImgURL)
+	result, err := s.db.Exec("INSERT INTO supliers (id, name, description, created, updated, img_url) VALUES (?, ?, ?, current_timestamp, current_timestamp , ?)", 0, supplier.Name, supplier.Description, supplier.ImgURL)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (s SupplierRepository) GetAll() (*[]models.Supplier, error) {
 }
 
 func (s SupplierRepository) Update(supplier *models.Supplier) (sql.Result, error) {
-	result, err := s.db.Exec("UPDATE supliers SET name = ?, updated=?, img_url=? WHERE id=?", supplier.Name, time.Now(), supplier.ImgURL, supplier.ID)
+	result, err := s.db.Exec("UPDATE supliers SET name = ?, updated=current_timestamp, img_url=? WHERE id=?", supplier.Name, supplier.ImgURL, supplier.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (s SupplierRepository) Delete(id int) (sql.Result, error) {
 }
 
 func (s SupplierRepository) SoftDelete(id int) (sql.Result, error) {
-	result, err := s.db.Exec("UPDATE supliers SET deleted=true, updated=current_time WHERE id=?", id)
+	result, err := s.db.Exec("UPDATE supliers SET deleted=true, updated=current_timestamp WHERE id=?", id)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (s SupplierRepository) Truncate() (sql.Result, error) {
 }
 
 func (s SupplierRepository) SoftDeleteALL() (sql.Result, error) {
-	result, err := s.db.Exec("UPDATE supliers SET deleted=true, updated=current_time WHERE deleted!=true")
+	result, err := s.db.Exec("UPDATE supliers SET deleted=true, updated=current_timestamp WHERE deleted!=true")
 	if err != nil {
 		return nil, err
 	}
@@ -147,4 +147,11 @@ func (s SupplierRepository) SearchByID(id int) (bool, error) {
 		return false, err
 	}
 	return false, nil
+}
+func (s SupplierRepository) SoftDeleteNotUpdated(interval int) (sql.Result, error) {
+	result, err := s.db.Exec("UPDATE supliers SET deleted=true, updated=current_timestamp WHERE deleted=false AND (current_timestamp-updated )>=?", interval)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }

@@ -3,6 +3,7 @@ package handlers
 import (
 	"awesomeProject/models"
 	"awesomeProject/services"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/DTB4/logger/v2"
@@ -198,4 +199,3 @@ func (p ProfileHandler) TokenCheck(next http.HandlerFunc) http.HandlerFunc {
 		next(w, req)
 	}
 }
-
