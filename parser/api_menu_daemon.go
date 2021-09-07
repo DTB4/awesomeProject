@@ -8,44 +8,57 @@ import (
 	"github.com/DTB4/logger/v2"
 	"io/ioutil"
 	"net/http"
+	"sync"
 	"time"
 )
 
-func NewMenuParser(url, format string, logger *logger.Logger, restaurantRepo *repository.SupplierRepository, productsRepo *repository.ProductsRepository) *MenuParser {
+func NewMenuParser(url, format string, logger *logger.Logger, restaurantRepo *repository.SupplierRepository, productsRepo *repository.ProductsRepository, frequencySeconds int) *MenuParser {
 	return &MenuParser{
-		restaurantRepo: restaurantRepo,
-		productsRepo:   productsRepo,
-		logger:         logger,
-		url:            url,
-		format:         format,
+		restaurantRepo:   restaurantRepo,
+		productsRepo:     productsRepo,
+		logger:           logger,
+		url:              url,
+		format:           format,
+		frequencySeconds: frequencySeconds,
 	}
 }
 
 type MenuParserI interface {
-	TimedParsing(frequencySeconds int)
-	productWork(products *[]models.ParserProduct, restID int)
-	restaurantCheckUpdateCreate(restaurants *[]models.ParserRestaurant)
+	TimedParsing()
+	productCheckUpdateCreate(parsedProduct *models.ParserProduct, oldRestID int, newRestID int)
+	restaurantCheckUpdateCreate(restaurant *models.ParserRestaurant)
+	getAllRestaurants() ([]models.ParserRestaurant, error)
+	getProductsFromRestByID(id int) (*[]models.ParserProduct, error)
+	transformRestaurantModel(parsedRestaurant *models.ParserRestaurant) *models.Supplier
+	transformProductModel(parsedProduct *models.ParserProduct, id int) *models.Product
+	deleteNonUpdatedRestaurants()
+	deleteNonUpdatedProducts()
 }
 
 type MenuParser struct {
-	restaurantRepo *repository.SupplierRepository
-	productsRepo   *repository.ProductsRepository
-	logger         *logger.Logger
-	url            string
-	format         string
+	restaurantRepo   *repository.SupplierRepository
+	productsRepo     *repository.ProductsRepository
+	logger           *logger.Logger
+	url              string
+	format           string
+	frequencySeconds int
 }
 
-func (m MenuParser) TimedParsing(frequencySeconds int) {
+func (m MenuParser) TimedParsing() {
 	for {
-		time.Sleep(time.Duration(frequencySeconds) * time.Second)
+		time.Sleep(time.Duration(m.frequencySeconds) * time.Second)
 		restaurants, err := m.getAllRestaurants()
 		if err != nil {
 			m.logger.ErrorLog("Fail to get restaurants", err)
 		}
-
+		var wg = sync.WaitGroup{}
 		for i := range restaurants {
+			wg.Add(1)
 			go m.restaurantCheckUpdateCreate(&restaurants[i])
+			wg.Done()
 		}
+		wg.Wait()
+		m.deleteNonUpdatedRestaurants()
 	}
 }
 
@@ -56,7 +69,7 @@ func (m MenuParser) getAllRestaurants() ([]models.ParserRestaurant, error) {
 	if err != nil {
 		return nil, err
 	}
-	readedBody, err := ioutil.ReadAll(response.Body)
+	readBody, err := ioutil.ReadAll(response.Body)
 	err = response.Body.Close()
 	if err != nil {
 		return nil, err
@@ -64,7 +77,7 @@ func (m MenuParser) getAllRestaurants() ([]models.ParserRestaurant, error) {
 
 	var responseBodyRestaurants models.ResponseBodyRestaurants
 
-	err = json.Unmarshal(readedBody, &responseBodyRestaurants)
+	err = json.Unmarshal(readBody, &responseBodyRestaurants)
 	if err != nil {
 		return nil, err
 	}
@@ -79,7 +92,7 @@ func (m MenuParser) getProductsFromRestByID(id int) (*[]models.ParserProduct, er
 	if err != nil {
 		return nil, err
 	}
-	readedBody, err := ioutil.ReadAll(response.Body)
+	readBody, err := ioutil.ReadAll(response.Body)
 	err = response.Body.Close()
 	if err != nil {
 		return nil, err
@@ -87,14 +100,14 @@ func (m MenuParser) getProductsFromRestByID(id int) (*[]models.ParserProduct, er
 
 	var products models.ResponseBodyMenu
 
-	if err := json.Unmarshal(readedBody, &products); err != nil {
+	if err := json.Unmarshal(readBody, &products); err != nil {
 		return nil, err
 	}
 
 	return &products.Menu, nil
 }
 
-func transformRestaurantModel(parsedRestaurant *models.ParserRestaurant) *models.Supplier {
+func (m MenuParser) transformRestaurantModel(parsedRestaurant *models.ParserRestaurant) *models.Supplier {
 	supplier := models.Supplier{
 		ImgURL: parsedRestaurant.Image,
 		ID:     parsedRestaurant.ID,
@@ -103,7 +116,7 @@ func transformRestaurantModel(parsedRestaurant *models.ParserRestaurant) *models
 	return &supplier
 }
 
-func transformProductModel(parsedProduct *models.ParserProduct, id int) *models.Product {
+func (m MenuParser) transformProductModel(parsedProduct *models.ParserProduct, id int) *models.Product {
 	product := models.Product{
 		ImgURL:      parsedProduct.Image,
 		Name:        parsedProduct.Name,
@@ -116,7 +129,7 @@ func transformProductModel(parsedProduct *models.ParserProduct, id int) *models.
 }
 
 func (m MenuParser) restaurantCheckUpdateCreate(restaurant *models.ParserRestaurant) {
-
+	var wg = sync.WaitGroup{}
 	dbSupplier, err := m.restaurantRepo.GetByName(restaurant.Name)
 	if err != nil {
 		m.logger.ErrorLog("fail to search supplier", err)
@@ -136,7 +149,7 @@ func (m MenuParser) restaurantCheckUpdateCreate(restaurant *models.ParserRestaur
 		m.logger.InfoLog("rows in restaurant renewed", rowsAffected)
 
 	}
-	result, err := m.restaurantRepo.Create(transformRestaurantModel(restaurant))
+	result, err := m.restaurantRepo.Create(m.transformRestaurantModel(restaurant))
 	if err != nil {
 		m.logger.ErrorLog("fail to create new supplier", err)
 		return
@@ -150,14 +163,17 @@ func (m MenuParser) restaurantCheckUpdateCreate(restaurant *models.ParserRestaur
 
 	products, err := m.getProductsFromRestByID(restaurant.ID)
 	for i := range *products {
+		wg.Add(1)
 		go m.productCheckUpdateCreate(&(*products)[i], dbSupplier.ID, int(lastRestID))
+		wg.Done()
 	}
-
+	wg.Wait()
+	m.deleteNonUpdatedProducts()
 }
 
 func (m MenuParser) productCheckUpdateCreate(parsedProduct *models.ParserProduct, oldRestID int, newRestID int) {
 
-	product := transformProductModel(parsedProduct, newRestID)
+	product := m.transformProductModel(parsedProduct, newRestID)
 	oldProductID, err := m.productsRepo.SearchBySupIDAndName(oldRestID, parsedProduct.Name)
 	if err != nil {
 		m.logger.ErrorLog("fail to search existed product", err)
@@ -188,4 +204,34 @@ func (m MenuParser) productCheckUpdateCreate(parsedProduct *models.ParserProduct
 	}
 	m.logger.InfoLog("Product with ID, saved to DB", lastProdID)
 
+}
+
+func (m MenuParser) deleteNonUpdatedRestaurants() {
+	result, err := m.restaurantRepo.SoftDeleteNotUpdated(m.frequencySeconds)
+	if err != nil {
+		m.logger.ErrorLog("Failed to delete not updated restaurants", err)
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		m.logger.ErrorLog("failed to get rows affected by soft delete not updated restaurants", err)
+	}
+	if rowsAffected != 0 {
+		m.logger.InfoLog("Rows was deleted from restaurants due to old update date", rowsAffected)
+
+	}
+}
+
+func (m MenuParser) deleteNonUpdatedProducts() {
+	result, err := m.productsRepo.SoftDeleteNotUpdated(m.frequencySeconds)
+	if err != nil {
+		m.logger.ErrorLog("Failed to delete not updated products", err)
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		m.logger.ErrorLog("failed to get rows affected by soft delete not updated products", err)
+	}
+	if rowsAffected != 0 {
+		m.logger.InfoLog("Rows was deleted in products due to old update date", rowsAffected)
+
+	}
 }

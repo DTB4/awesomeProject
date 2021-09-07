@@ -38,8 +38,8 @@ func main() {
 	url := os.Getenv("URL_FOR_API_PARSER")
 	format := os.Getenv("FORMAT_STRING_FOR_API_URL")
 	parserDelay, _ := strconv.Atoi(os.Getenv("PARSER_DELAY_SECONDS"))
-	menuParser := parser.NewMenuParser(url, format, myLogger, suppliersRepository, productRepository)
-	go menuParser.TimedParsing(parserDelay)
+	menuParser := parser.NewMenuParser(url, format, myLogger, suppliersRepository, productRepository, parserDelay)
+	go menuParser.TimedParsing()
 
 	http.HandleFunc("/registration", profileHandler.CreateNewUser)
 	http.HandleFunc("/profile", authHandler.TokenCheck(profileHandler.ShowUserProfile))
