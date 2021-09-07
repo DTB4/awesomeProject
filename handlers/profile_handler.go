@@ -3,7 +3,6 @@ package handlers
 import (
 	"awesomeProject/models"
 	"awesomeProject/services"
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/DTB4/logger/v2"
@@ -17,8 +16,8 @@ import (
 func NewProfileHandler(userService *services.UserService, tokenService *services.TokenService, logger *logger.Logger) *ProfileHandler {
 	return &ProfileHandler{
 		userService:  userService,
-		tokenService: tokenService,
 		logger:       logger,
+		tokenService: tokenService,
 	}
 }
 
@@ -27,14 +26,12 @@ type ProfileHandlerI interface {
 	CreateNewUser(w http.ResponseWriter, req *http.Request)
 	ShowUserProfile(w http.ResponseWriter, req *http.Request)
 	EditUserProfile(w http.ResponseWriter, req *http.Request)
-	TokenCheck(next http.HandlerFunc) http.HandlerFunc
-	Login(w http.ResponseWriter, req *http.Request)
 }
 
 type ProfileHandler struct {
 	userService  *services.UserService
-	tokenService *services.TokenService
 	logger       *logger.Logger
+	tokenService *services.TokenService
 }
 
 func (p ProfileHandler) GetAll(w http.ResponseWriter, req *http.Request) {
@@ -89,6 +86,13 @@ func (p ProfileHandler) ShowUserProfile(w http.ResponseWriter, req *http.Request
 }
 
 func (p ProfileHandler) Login(w http.ResponseWriter, req *http.Request) {
+
+	var (
+		accessLifeTimeMinutes, _  = strconv.Atoi(os.Getenv("ACCESS_LIFE_TIME_MINUTES"))
+		refreshLifeTimeMinutes, _ = strconv.Atoi(os.Getenv("REFRESH_LIFE_TIME_MINUTES"))
+		accessSecretString        = os.Getenv("ACCESS_SECRET_STRING")
+		refreshSecretString       = os.Getenv("REFRESH_SECRET_STRING")
+	)
 	loginForm := new(models.LoginForm)
 	err := json.NewDecoder(req.Body).Decode(&loginForm)
 	if err != nil {
@@ -105,10 +109,6 @@ func (p ProfileHandler) Login(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "invalid input", http.StatusUnauthorized)
 		return
 	}
-	accessLifeTimeMinutes, _ := strconv.Atoi(os.Getenv("ACCESS_LIFE_TIME_MINUTES"))
-	refreshLifeTimeMinutes, _ := strconv.Atoi(os.Getenv("REFRESH_LIFE_TIME_MINUTES"))
-	accessSecretString := os.Getenv("ACCESS_SECRET_STRING")
-	refreshSecretString := os.Getenv("REFRESH_SECRET_STRING")
 	accessString, err := p.tokenService.GenerateToken(user.ID, accessLifeTimeMinutes, accessSecretString)
 	refreshString, err := p.tokenService.GenerateToken(user.ID, refreshLifeTimeMinutes, refreshSecretString)
 	if err != nil {
@@ -187,8 +187,6 @@ func (p ProfileHandler) TokenCheck(next http.HandlerFunc) http.HandlerFunc {
 		accessSecretString := os.Getenv("ACCESS_SECRET_STRING")
 		claims, err := p.tokenService.Validate(tokenString, accessSecretString)
 
-		//fmt.Println("user with ID = ", claims.ID, " login")
-
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
@@ -200,3 +198,4 @@ func (p ProfileHandler) TokenCheck(next http.HandlerFunc) http.HandlerFunc {
 		next(w, req)
 	}
 }
+
