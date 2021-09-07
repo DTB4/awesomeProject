@@ -25,7 +25,7 @@ type OrderRepository struct {
 }
 
 func (or OrderRepository) Create(order *models.Order) (sql.Result, error) {
-	result, err := or.db.Exec("INSERT INTO orders (id, id_user, status, created) VALUES (?, ?, ?, ?)", order.ID, order.IDUser, "created", time.Now())
+	result, err := or.db.Exec("INSERT INTO orders (id, id_user, status, created, updated) VALUES (?, ?, ?, ?, ?)", order.ID, order.IDUser, "created", time.Now(), time.Now())
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +34,7 @@ func (or OrderRepository) Create(order *models.Order) (sql.Result, error) {
 
 func (or OrderRepository) GetByID(orderID int) (*models.Order, error) {
 	order := models.Order{}
-	rows, err := or.db.Query("SELECT * FROM orders WHERE id=?", orderID)
+	rows, err := or.db.Query("SELECT * FROM orders WHERE id=? AND deleted=false", orderID)
 	if err != nil {
 		return nil, err
 	}
@@ -53,13 +53,13 @@ func (or OrderRepository) GetByID(orderID int) (*models.Order, error) {
 
 func (or OrderRepository) GetUserOrders(userID int) (*[]models.Order, error) {
 	var orders []models.Order
-	rows, err := or.db.Query("SELECT * FROM orders WHERE id_user=?", userID)
+	rows, err := or.db.Query("SELECT * FROM orders WHERE id_user=? AND deleted=false", userID)
 	if err != nil {
 		return nil, err
 	}
 	order := models.Order{}
 	for rows.Next() {
-		err = rows.Scan(&order.ID, &order.IDUser, &order.Status, &order.Created, &order.Updated)
+		err = rows.Scan(&order.ID, &order.IDUser, &order.Status, &order.Created, &order.Updated, &order.Deleted)
 		if err != nil {
 			return nil, err
 		}
@@ -73,7 +73,7 @@ func (or OrderRepository) GetUserOrders(userID int) (*[]models.Order, error) {
 }
 
 func (or OrderRepository) Update(order *models.Order) (sql.Result, error) {
-	result, err := or.db.Exec("UPDATE orders SET status=?, updated=? WHERE id=?", order.Status, time.Now(), order.ID)
+	result, err := or.db.Exec("UPDATE orders SET status=?, updated=? WHERE id=? AND deleted=false", order.Status, time.Now(), order.ID)
 	if err != nil {
 		return nil, err
 	}

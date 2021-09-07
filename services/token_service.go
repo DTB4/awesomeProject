@@ -16,8 +16,8 @@ func NewTokenService() *TokenService {
 }
 
 type TokenServiceI interface {
-	ValidateToken(tokenString, secret string) (*JwtCustomClaims, error)
-	GetTokenFromBearerString(input string) string
+	Validate(tokenString, secret string) (*JwtCustomClaims, error)
+	ParseFromBearerString(input string) string
 	GenerateToken(userID, lifeTimeMinutes int, secret string) (string, error)
 	GenerateAccessToken(id int) (string, error)
 	GenerateRefreshToken(id int) (string, error)
@@ -26,7 +26,7 @@ type TokenServiceI interface {
 type TokenService struct {
 }
 
-func (t TokenService) ValidateToken(tokenString, secret string) (*JwtCustomClaims, error) {
+func (t TokenService) Validate(tokenString, secret string) (*JwtCustomClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &JwtCustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil
 	})
@@ -42,7 +42,7 @@ func (t TokenService) ValidateToken(tokenString, secret string) (*JwtCustomClaim
 	return claims, nil
 }
 
-func (t TokenService) GetTokenFromBearerString(input string) string {
+func (t TokenService) ParseFromBearerString(input string) string {
 	if input == "" {
 		return ""
 	}
