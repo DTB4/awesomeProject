@@ -12,5 +12,14 @@ type User struct {
 	PasswordHash string    `json:"password_hash"`
 	Created      time.Time `json:"created"`
 	Updated      time.Time `json:"updated"`
-	Deleted      time.Time `json:"deleted"`
+	Deleted      bool      `json:"deleted"`
+}
+
+type LoginForm struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type ActiveUserData struct {
+	ID int `json:"id"`
 }

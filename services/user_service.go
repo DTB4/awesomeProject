@@ -7,24 +7,22 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func NewUserService(OrderRepository *repository.OrderRepository, UserRepository *repository.UserRepository) *UserService {
+func NewUserService(UserRepository *repository.UserRepository) *UserService {
 	return &UserService{
-		*OrderRepository,
 		*UserRepository,
 	}
 }
 
 type UserServiceI interface {
-	CreateNewUser(user *models.User) error
-	GetUserByID(userID int) (*models.User, error)
-	GetUserByEmail(email string) (*models.User, error)
-	EditUserProfile(user *models.User) error
-	GetAllUsers() (*[]models.User, error)
+	Create(user *models.User) (sql.Result, error)
+	GetByID(userID int) (*models.User, error)
+	GetByEmail(email string) (*models.User, error)
+	Update(user *models.User) (sql.Result, error)
+	GetAll() (*[]models.User, error)
 }
 
 type UserService struct {
-	OrderRepository repository.OrderRepository
-	UserRepository  repository.UserRepository
+	UserRepository repository.UserRepository
 }
 
 func (u UserService) CreateNewUser(user *models.User) (sql.Result, error) {

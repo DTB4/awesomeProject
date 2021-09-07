@@ -183,9 +183,9 @@ func (p ProfileHandler) CreateNewUser(w http.ResponseWriter, req *http.Request) 
 func (p ProfileHandler) TokenCheck(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		bearerString := req.Header.Get("Authorization")
-		tokenString := p.tokenService.GetTokenFromBearerString(bearerString)
+		tokenString := p.tokenService.ParseFromBearerString(bearerString)
 		accessSecretString := os.Getenv("ACCESS_SECRET_STRING")
-		claims, err := p.tokenService.ValidateToken(tokenString, accessSecretString)
+		claims, err := p.tokenService.Validate(tokenString, accessSecretString)
 
 		//fmt.Println("user with ID = ", claims.ID, " login")
 
