@@ -3,7 +3,9 @@ package parser
 import (
 	"awesomeProject/models"
 	"awesomeProject/repository"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/DTB4/logger/v2"
 	"io/ioutil"
@@ -46,25 +48,40 @@ type MenuParser struct {
 
 func (m MenuParser) TimedParsing() {
 	for {
+		m.Parse()
 		time.Sleep(time.Duration(m.frequencySeconds) * time.Second)
-		restaurants, err := m.getAllRestaurants()
-		if err != nil {
-			m.logger.ErrorLog("Fail to get restaurants", err)
-		}
-		var wg = sync.WaitGroup{}
-		for i := range restaurants {
-			wg.Add(1)
-			go m.restaurantCheckUpdateCreate(&restaurants[i])
-			wg.Done()
-		}
-		wg.Wait()
-		m.deleteNonUpdatedRestaurants()
 	}
 }
 
-func (m MenuParser) getAllRestaurants() ([]models.ParserRestaurant, error) {
-	url := m.url
+func (m MenuParser) Parse() {
 
+	m.logger.InfoLog("starting API parsing with timeout (s): ", m.frequencySeconds)
+	ctx := context.Background()
+
+	restaurants, err := func(ctx context.Context) (*[]models.ParserRestaurant, error) {
+		ctx, cancel := context.WithTimeout(ctx, time.Duration(m.frequencySeconds/10)*time.Second)
+		defer cancel()
+		return m.getAllRestaurants(ctx)
+	}(ctx)
+
+	if err != nil {
+		m.logger.ErrorLog("Fail to get restaurants", err)
+		return
+	}
+
+	var wg = sync.WaitGroup{}
+	for i := range *restaurants {
+		wg.Add(1)
+		go m.restaurantCheckUpdateCreate(&(*restaurants)[i])
+		wg.Done()
+	}
+	wg.Wait()
+	m.deleteNonUpdatedRestaurants()
+
+}
+
+func (m MenuParser) getAllRestaurants(ctx context.Context) (*[]models.ParserRestaurant, error) {
+	url := m.url
 	response, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -81,11 +98,15 @@ func (m MenuParser) getAllRestaurants() ([]models.ParserRestaurant, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	return responseBodyRestaurants.Restaurants, nil
+	select {
+	case <-ctx.Done():
+		return nil, errors.New("timeout in getAllRestaurants")
+	default:
+		return &responseBodyRestaurants.Restaurants, nil
+	}
 }
 
-func (m MenuParser) getProductsFromRestByID(id int) (*[]models.ParserProduct, error) {
+func (m MenuParser) getProductsFromRestByID(ctx context.Context, id int) (*[]models.ParserProduct, error) {
 	url := fmt.Sprintf(m.format, m.url, id)
 
 	response, err := http.Get(url)
@@ -100,11 +121,15 @@ func (m MenuParser) getProductsFromRestByID(id int) (*[]models.ParserProduct, er
 
 	var products models.ResponseBodyMenu
 
-	if err := json.Unmarshal(readBody, &products); err != nil {
+	if err = json.Unmarshal(readBody, &products); err != nil {
 		return nil, err
 	}
-
-	return &products.Menu, nil
+	select {
+	case <-ctx.Done():
+		return nil, errors.New("timeout in getProductsFromRestByID")
+	default:
+		return &products.Menu, nil
+	}
 }
 
 func (m MenuParser) transformRestaurantModel(parsedRestaurant *models.ParserRestaurant) *models.Supplier {
@@ -160,8 +185,16 @@ func (m MenuParser) restaurantCheckUpdateCreate(restaurant *models.ParserRestaur
 		return
 	}
 	m.logger.InfoLog("Saved restaurant with ID ", lastRestID)
-
-	products, err := m.getProductsFromRestByID(restaurant.ID)
+	ctx := context.Background()
+	products, err := func(ctx context.Context, id int) (*[]models.ParserProduct, error) {
+		ctx, cancel := context.WithTimeout(ctx, time.Duration(m.frequencySeconds/10)*time.Second)
+		defer cancel()
+		return m.getProductsFromRestByID(ctx, restaurant.ID)
+	}(ctx, restaurant.ID)
+	if err != nil {
+		m.logger.ErrorLog("fail to get product by rest ID", err)
+		return
+	}
 	for i := range *products {
 		wg.Add(1)
 		go m.productCheckUpdateCreate(&(*products)[i], dbSupplier.ID, int(lastRestID))
