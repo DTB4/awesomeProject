@@ -27,6 +27,8 @@ type ProfileHandlerI interface {
 	CreateNewUser(w http.ResponseWriter, req *http.Request)
 	ShowUserProfile(w http.ResponseWriter, req *http.Request)
 	EditUserProfile(w http.ResponseWriter, req *http.Request)
+	Login(w http.ResponseWriter, req *http.Request)
+	Refresh(w http.ResponseWriter, req *http.Request)
 }
 
 type ProfileHandler struct {
@@ -181,7 +183,7 @@ func (p ProfileHandler) CreateNewUser(w http.ResponseWriter, req *http.Request) 
 	}
 }
 
-func (p ProfileHandler) TokenCheck(next http.HandlerFunc) http.HandlerFunc {
+func (p ProfileHandler) AccessTokenCheck(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		bearerString := req.Header.Get("Authorization")
 		tokenString := p.tokenService.ParseFromBearerString(bearerString)
@@ -198,4 +200,34 @@ func (p ProfileHandler) TokenCheck(next http.HandlerFunc) http.HandlerFunc {
 		req = req.WithContext(context.WithValue(req.Context(), "CurrentUser", curUser))
 		next(w, req)
 	}
+}
+
+func (p ProfileHandler) Refresh(w http.ResponseWriter, req *http.Request) {
+	userID := req.Context().Value("CurrentUser").(models.ActiveUserData).ID
+	var (
+		accessLifeTimeMinutes, _  = strconv.Atoi(os.Getenv("ACCESS_LIFE_TIME_MINUTES"))
+		refreshLifeTimeMinutes, _ = strconv.Atoi(os.Getenv("REFRESH_LIFE_TIME_MINUTES"))
+		accessSecretString        = os.Getenv("ACCESS_SECRET_STRING")
+		refreshSecretString       = os.Getenv("REFRESH_SECRET_STRING")
+	)
+
+	accessString, err := p.tokenService.GenerateToken(userID, accessLifeTimeMinutes, accessSecretString)
+	refreshString, err := p.tokenService.GenerateToken(userID, refreshLifeTimeMinutes, refreshSecretString)
+	if err != nil {
+		http.Error(w, "Fail to generate tokens", http.StatusUnauthorized)
+	}
+
+	resp := &models.TokenPair{
+		AccessToken:  accessString,
+		RefreshToken: refreshString,
+	}
+	respJ, _ := json.Marshal(resp)
+
+	w.WriteHeader(http.StatusOK)
+	length, err := w.Write(respJ)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(length)
+
 }

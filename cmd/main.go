@@ -42,14 +42,15 @@ func main() {
 	go menuParser.TimedParsing()
 
 	http.HandleFunc("/registration", profileHandler.CreateNewUser)
-	http.HandleFunc("/profile", authHandler.TokenCheck(profileHandler.ShowUserProfile))
-	http.HandleFunc("/editprofile", authHandler.TokenCheck(profileHandler.EditUserProfile))
+	http.HandleFunc("/profile", authHandler.AccessTokenCheck(profileHandler.ShowUserProfile))
+	http.HandleFunc("/editprofile", authHandler.AccessTokenCheck(profileHandler.EditUserProfile))
+	http.HandleFunc("/refresh", authHandler.RefreshTokenCheck(profileHandler.Refresh))
 	http.HandleFunc("/login", profileHandler.Login)
 
-	http.HandleFunc("/createorder", authHandler.TokenCheck(orderHandler.Create))
-	http.HandleFunc("/getorder", authHandler.TokenCheck(orderHandler.GetByID))
-	http.HandleFunc("/getmyorders", authHandler.TokenCheck(orderHandler.GetAll))
-	http.HandleFunc("/updateorder", authHandler.TokenCheck(orderHandler.Update))
+	http.HandleFunc("/createorder", authHandler.AccessTokenCheck(orderHandler.Create))
+	http.HandleFunc("/getorder", authHandler.AccessTokenCheck(orderHandler.GetByID))
+	http.HandleFunc("/getmyorders", authHandler.AccessTokenCheck(orderHandler.GetAll))
+	http.HandleFunc("/updateorder", authHandler.AccessTokenCheck(orderHandler.Update))
 
 	log.Fatal(http.ListenAndServe(os.Getenv("HTTP_PORT"), nil))
 }
