@@ -8,9 +8,8 @@ import (
 	"net/http"
 )
 
-func NewAuthHandler(cfg *models.AuthConfig, tokenService *services.TokenService, logger *logger.Logger) *AuthHandler {
+func NewAuthHandler(tokenService *services.TokenService, logger *logger.Logger) *AuthHandler {
 	return &AuthHandler{
-		cfg:          cfg,
 		tokenService: tokenService,
 		logger:       logger,
 	}
@@ -24,16 +23,20 @@ type AuthHandlerI interface {
 type AuthHandler struct {
 	tokenService *services.TokenService
 	logger       *logger.Logger
-	cfg          *models.AuthConfig
 }
 
 func (ah AuthHandler) AccessTokenCheck(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		bearerString := req.Header.Get("Authorization")
 		tokenString := ah.tokenService.ParseFromBearerString(bearerString)
-		claims, err := ah.tokenService.Validate(tokenString, ah.cfg.AccessSecretString)
+		claims, err := ah.tokenService.ValidateAccessToken(tokenString)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		userFromDB, err := ah.tokenService.CheckUID(claims.UID)
+		if claims.ID != userFromDB {
+			http.Error(w, "only one active device", http.StatusUnauthorized)
 			return
 		}
 		curUser := models.ActiveUserData{
@@ -49,8 +52,13 @@ func (ah AuthHandler) RefreshTokenCheck(next http.HandlerFunc) http.HandlerFunc 
 	return func(w http.ResponseWriter, req *http.Request) {
 		bearerString := req.Header.Get("Authorization")
 		tokenString := ah.tokenService.ParseFromBearerString(bearerString)
-		claims, err := ah.tokenService.Validate(tokenString, ah.cfg.RefreshSecretString)
+		claims, err := ah.tokenService.ValidateRefreshToken(tokenString)
 		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		userFromDB, err := ah.tokenService.CheckUID(claims.UID)
+		if claims.ID != userFromDB {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}

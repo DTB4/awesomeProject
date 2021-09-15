@@ -11,15 +11,15 @@ import (
 	"net/http"
 )
 
-func NewProfileHandler(userService *services.UserService, tokenService *services.TokenService, logger *logger.Logger) *ProfileHandler {
-	return &ProfileHandler{
+func NewUserHandler(userService services.UserServiceI, tokenService services.TokenServiceI, logger *logger.Logger) *UserHandler {
+	return &UserHandler{
 		userService:  userService,
 		logger:       logger,
 		tokenService: tokenService,
 	}
 }
 
-type ProfileHandlerI interface {
+type UserHandlerI interface {
 	CreateNewUser(w http.ResponseWriter, req *http.Request)
 	ShowUserProfile(w http.ResponseWriter, req *http.Request)
 	EditUserProfile(w http.ResponseWriter, req *http.Request)
@@ -27,13 +27,13 @@ type ProfileHandlerI interface {
 	Refresh(w http.ResponseWriter, req *http.Request)
 }
 
-type ProfileHandler struct {
-	userService  *services.UserService
+type UserHandler struct {
+	userService  services.UserServiceI
 	logger       *logger.Logger
-	tokenService *services.TokenService
+	tokenService services.TokenServiceI
 }
 
-func (p ProfileHandler) CreateNewUser(w http.ResponseWriter, req *http.Request) {
+func (p UserHandler) CreateNewUser(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "POST":
 		user := new(models.User)
@@ -41,7 +41,7 @@ func (p ProfileHandler) CreateNewUser(w http.ResponseWriter, req *http.Request) 
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotAcceptable)
 		}
-		result, err := p.userService.CreateNewUser(user)
+		result, err := p.userService.Create(user)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -58,13 +58,13 @@ func (p ProfileHandler) CreateNewUser(w http.ResponseWriter, req *http.Request) 
 	}
 }
 
-func (p ProfileHandler) ShowUserProfile(w http.ResponseWriter, req *http.Request) {
+func (p UserHandler) ShowUserProfile(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "GET":
 
 		userID := req.Context().Value("CurrentUser").(models.ActiveUserData).ID
 
-		user, err := p.userService.GetUserByID(userID)
+		user, err := p.userService.GetByID(userID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 
@@ -85,7 +85,7 @@ func (p ProfileHandler) ShowUserProfile(w http.ResponseWriter, req *http.Request
 	}
 }
 
-func (p ProfileHandler) EditUserProfile(w http.ResponseWriter, req *http.Request) {
+func (p UserHandler) EditUserProfile(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "POST":
 		user := new(models.User)
@@ -93,7 +93,7 @@ func (p ProfileHandler) EditUserProfile(w http.ResponseWriter, req *http.Request
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotAcceptable)
 		}
-		result, err := p.userService.EditUserProfile(user)
+		result, err := p.userService.Update(user)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -110,7 +110,7 @@ func (p ProfileHandler) EditUserProfile(w http.ResponseWriter, req *http.Request
 	}
 }
 
-func (p ProfileHandler) Login(w http.ResponseWriter, req *http.Request) {
+func (p UserHandler) Login(w http.ResponseWriter, req *http.Request) {
 
 	loginForm := new(models.LoginForm)
 	err := json.NewDecoder(req.Body).Decode(&loginForm)
@@ -118,7 +118,7 @@ func (p ProfileHandler) Login(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotAcceptable)
 		return
 	}
-	user, err := p.userService.GetUserByEmail(loginForm.Email)
+	user, err := p.userService.GetByEmail(loginForm.Email)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotAcceptable)
 		return
@@ -148,7 +148,7 @@ func (p ProfileHandler) Login(w http.ResponseWriter, req *http.Request) {
 
 }
 
-func (p ProfileHandler) Refresh(w http.ResponseWriter, req *http.Request) {
+func (p UserHandler) Refresh(w http.ResponseWriter, req *http.Request) {
 	userID := req.Context().Value("CurrentUser").(models.ActiveUserData).ID
 
 	accessString, refreshString, err := p.tokenService.GeneratePairOfTokens(userID)

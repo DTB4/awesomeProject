@@ -22,25 +22,26 @@ func Start(cfg *models.Config) {
 	userRepository := repository.NewUserRepository(db)
 	orderRepository := repository.NewOrderRepository(db)
 	orderProductsRepository := repository.NewOrderProductsRepository(db)
+	tokenRepository := repository.NewTokenRepository(db)
 
 	orderService := services.NewOrderService(orderRepository, orderProductsRepository)
 	userService := services.NewUserService(userRepository)
-	tokenService := services.NewTokenService(&cfg.AuthConfig)
+	tokenService := services.NewTokenService(&cfg.AuthConfig, tokenRepository)
 
-	authHandler := midleware.NewAuthHandler(&cfg.AuthConfig, tokenService, myLogger)
+	authHandler := midleware.NewAuthHandler(tokenService, myLogger)
 	orderHandler := handlers.NewOrderHandler(orderService, myLogger)
-	profileHandler := handlers.NewProfileHandler(userService, tokenService, myLogger)
+	userHandler := handlers.NewUserHandler(userService, tokenService, myLogger)
 
 	menuParser := parser.NewMenuParser(&cfg.ParserConfig, myLogger, suppliersRepository, productRepository)
 	go menuParser.TimedParsing()
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/registration", profileHandler.CreateNewUser)
-	mux.HandleFunc("/profile", authHandler.AccessTokenCheck(profileHandler.ShowUserProfile))
-	mux.HandleFunc("/editprofile", authHandler.AccessTokenCheck(profileHandler.EditUserProfile))
-	mux.HandleFunc("/refresh", authHandler.RefreshTokenCheck(profileHandler.Refresh))
-	mux.HandleFunc("/login", profileHandler.Login)
+	mux.HandleFunc("/registration", userHandler.CreateNewUser)
+	mux.HandleFunc("/profile", authHandler.AccessTokenCheck(userHandler.ShowUserProfile))
+	mux.HandleFunc("/editprofile", authHandler.AccessTokenCheck(userHandler.EditUserProfile))
+	mux.HandleFunc("/refresh", authHandler.RefreshTokenCheck(userHandler.Refresh))
+	mux.HandleFunc("/login", userHandler.Login)
 
 	mux.HandleFunc("/createorder", authHandler.AccessTokenCheck(orderHandler.Create))
 	mux.HandleFunc("/getorder", authHandler.AccessTokenCheck(orderHandler.GetByID))
