@@ -14,12 +14,12 @@ import (
 	"time"
 )
 
-func NewMenuParser(cfg *models.ParserConfig, logger *logger.Logger, restaurantRepo *repository.SupplierRepository, productsRepo *repository.ProductsRepository) *MenuParser {
+func NewMenuParser(cfg *models.ParserConfig, logger *logger.Logger, supplierRepository *repository.SupplierRepository, productsRepo *repository.ProductsRepository) *MenuParser {
 	return &MenuParser{
-		cfg:            cfg,
-		restaurantRepo: restaurantRepo,
-		productsRepo:   productsRepo,
-		logger:         logger,
+		cfg:          cfg,
+		supplierRepo: supplierRepository,
+		productsRepo: productsRepo,
+		logger:       logger,
 	}
 }
 
@@ -36,10 +36,10 @@ type MenuParserI interface {
 }
 
 type MenuParser struct {
-	cfg            *models.ParserConfig
-	restaurantRepo *repository.SupplierRepository
-	productsRepo   *repository.ProductsRepository
-	logger         *logger.Logger
+	cfg          *models.ParserConfig
+	supplierRepo *repository.SupplierRepository
+	productsRepo *repository.ProductsRepository
+	logger       *logger.Logger
 }
 
 func (m MenuParser) TimedParsing() {
@@ -151,13 +151,13 @@ func (m MenuParser) transformProductModel(parsedProduct *models.ParserProduct, i
 
 func (m MenuParser) restaurantCheckUpdateCreate(restaurant *models.ParserRestaurant) {
 	var wg = sync.WaitGroup{}
-	dbSupplier, err := m.restaurantRepo.GetByName(restaurant.Name)
+	dbSupplier, err := m.supplierRepo.GetByName(restaurant.Name)
 	if err != nil {
 		m.logger.ErrorLog("fail to search supplier", err)
 		return
 	}
 	if dbSupplier != nil {
-		result, err := m.restaurantRepo.SoftDelete(dbSupplier.ID)
+		result, err := m.supplierRepo.SoftDelete(dbSupplier.ID)
 		if err != nil {
 			m.logger.ErrorLog("fail to edit supplier", err)
 			return
@@ -170,7 +170,7 @@ func (m MenuParser) restaurantCheckUpdateCreate(restaurant *models.ParserRestaur
 		m.logger.InfoLog("rows in restaurant renewed", rowsAffected)
 
 	}
-	result, err := m.restaurantRepo.Create(m.transformRestaurantModel(restaurant))
+	result, err := m.supplierRepo.Create(m.transformRestaurantModel(restaurant))
 	if err != nil {
 		m.logger.ErrorLog("fail to create new supplier", err)
 		return
@@ -236,7 +236,7 @@ func (m MenuParser) productCheckUpdateCreate(parsedProduct *models.ParserProduct
 }
 
 func (m MenuParser) deleteNonUpdatedRestaurants() {
-	result, err := m.restaurantRepo.SoftDeleteNotUpdated(m.cfg.ParsingDelaySeconds)
+	result, err := m.supplierRepo.SoftDeleteNotUpdated(m.cfg.ParsingDelaySeconds)
 	if err != nil {
 		m.logger.ErrorLog("Failed to delete not updated restaurants", err)
 	}

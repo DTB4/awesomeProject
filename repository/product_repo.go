@@ -18,8 +18,11 @@ type ProductsRepositoryI interface {
 	GetAllBySupplierID(id int) (*[]models.Product, error)
 	Update(product *models.Product) (sql.Result, error)
 	Delete(id int) (sql.Result, error)
+	SoftDelete(id int) (sql.Result, error)
 	Truncate() (sql.Result, error)
+	SoftDeleteALL() (sql.Result, error)
 	SearchBySupIDAndName(supplierID int, name string) (int, error)
+	SoftDeleteNotUpdated(interval int) (sql.Result, error)
 }
 
 type ProductsRepository struct {
