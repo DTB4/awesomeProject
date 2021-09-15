@@ -32,6 +32,14 @@ func (u UserService) Create(user *models.User) (sql.Result, error) {
 	if err != nil {
 		return nil, err
 	}
+	userID, err := result.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+	result2, err := u.userRepository.CreateUIDRow(int(userID))
+	if err != nil || result2 == nil {
+		return nil, err
+	}
 	return result, nil
 }
 
