@@ -3,7 +3,6 @@ package repository
 import (
 	"awesomeProject/models"
 	"database/sql"
-	"log"
 	"time"
 )
 
@@ -19,6 +18,7 @@ type UserRepositoryI interface {
 	GetByID(id int) (*models.User, error)
 	Update(user *models.User) (sql.Result, error)
 	Delete(id int) (sql.Result, error)
+	CreateUIDRow(userID int) (sql.Result, error)
 }
 
 type UserRepository struct {
@@ -34,8 +34,12 @@ func (u UserRepository) GetByEmail(email string) (*models.User, error) {
 	for rows.Next() {
 		err = rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.PasswordHash, &user.Created, &user.Updated, &user.Deleted)
 		if err != nil {
-			log.Println(err)
+			return nil, err
 		}
+	}
+	err = rows.Close()
+	if err != nil {
+		return nil, err
 	}
 	return &user, nil
 }
@@ -49,8 +53,12 @@ func (u UserRepository) GetByID(id int) (*models.User, error) {
 	for rows.Next() {
 		err = rows.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.PasswordHash, &user.Created, &user.Updated, &user.Deleted)
 		if err != nil {
-			log.Println(err)
+			return nil, err
 		}
+	}
+	err = rows.Close()
+	if err != nil {
+		return nil, err
 	}
 	return &user, nil
 }
@@ -73,6 +81,14 @@ func (u UserRepository) Update(user *models.User) (sql.Result, error) {
 
 func (u UserRepository) Delete(id int) (sql.Result, error) {
 	result, err := u.db.Exec("DELETE from users WHERE id=?", id)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+func (u UserRepository) CreateUIDRow(userID int) (sql.Result, error) {
+	result, err := u.db.Exec("INSERT INTO uids (user_id) VALUES (?)", userID, nil)
 	if err != nil {
 		return nil, err
 	}

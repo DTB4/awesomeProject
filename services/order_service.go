@@ -6,7 +6,7 @@ import (
 	"database/sql"
 )
 
-func NewOrderService(orderRepository *repository.OrderRepository, orderProductsRepository *repository.OrderProductsRepository) *OrderService {
+func NewOrderService(orderRepository repository.OrderRepositoryI, orderProductsRepository repository.OrderProductsRepositoryI) *OrderService {
 	return &OrderService{
 		orderRepository,
 		orderProductsRepository,
@@ -15,16 +15,16 @@ func NewOrderService(orderRepository *repository.OrderRepository, orderProductsR
 
 type OrderServiceI interface {
 	CreateOrder(order *models.Order) (sql.Result, error)
-	CreateOrderProducts(orderProducts *[]models.OrderProduct) (sql.Result, error)
+	CreateOrderProducts(orderID int, orderProducts *[]models.OrderProduct) (int, error)
 	GetByID(orderID int) (*[]models.OrderProduct, error)
 	GetAll(userID int) (*[]models.Order, error)
-	Update(order *models.Order) (sql.Result, error)
+	Update(updateRequest *models.UpdateOrderRequest) (sql.Result, error)
 	Delete(orderID int) (sql.Result, error)
 }
 
 type OrderService struct {
-	orderRepository         *repository.OrderRepository
-	orderProductsRepository *repository.OrderProductsRepository
+	orderRepository         repository.OrderRepositoryI
+	orderProductsRepository repository.OrderProductsRepositoryI
 }
 
 func (o OrderService) CreateOrder(order *models.Order) (sql.Result, error) {

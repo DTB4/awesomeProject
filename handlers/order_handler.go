@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func NewOrderHandler(orderService *services.OrderService, logger *logger.Logger) *OrderHandler {
+func NewOrderHandler(orderService services.OrderServiceI, logger *logger.Logger) *OrderHandler {
 	return &OrderHandler{
 		orderService: orderService,
 		logger:       logger,
@@ -24,7 +24,7 @@ type OrderHandlerI interface {
 }
 
 type OrderHandler struct {
-	orderService *services.OrderService
+	orderService services.OrderServiceI
 	logger       *logger.Logger
 }
 
