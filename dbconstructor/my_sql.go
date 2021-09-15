@@ -1,23 +1,23 @@
 package dbconstructor
 
 import (
+	"awesomeProject/models"
 	"database/sql"
+	"github.com/DTB4/logger/v2"
 	_ "github.com/go-sql-driver/mysql"
-	"log"
-	"os"
 )
 
-func NewDB() *sql.DB {
+func NewDB(cfg *models.DBConfig, logger *logger.Logger) *sql.DB {
 
-	dbUserName := os.Getenv("DATABASE_USER")
-	dbUserPassword := os.Getenv("DATABASE_PASSWORD")
-	dbProtocolIpPort := os.Getenv("DATABASE_PROTOCOL_IP_PORT")
-	dbName := os.Getenv("DATABASE_NAME")
+	dbUserName := cfg.DatabaseUser
+	dbUserPassword := cfg.DatabasePassword
+	dbProtocolIpPort := cfg.DatabaseProtocolIPAndPort
+	dbName := cfg.DatabaseName
 
 	dataSourceName := dbUserName + ":" + dbUserPassword + "@" + dbProtocolIpPort + "/" + dbName + "?parseTime=True"
 	db, err := sql.Open("mysql", dataSourceName)
 	if err != nil {
-		log.Fatal(err)
+		logger.FatalLog("fail to establish a db connection", err)
 	}
 	return db
 }

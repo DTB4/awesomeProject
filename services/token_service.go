@@ -1,6 +1,7 @@
 package services
 
 import (
+	"awesomeProject/models"
 	"github.com/golang-jwt/jwt"
 	"strings"
 	"time"
@@ -11,19 +12,21 @@ type JwtCustomClaims struct {
 	jwt.StandardClaims
 }
 
-func NewTokenService() *TokenService {
-	return &TokenService{}
+func NewTokenService(cfg *models.AuthConfig) *TokenService {
+	return &TokenService{
+		cfg: cfg,
+	}
 }
 
 type TokenServiceI interface {
 	Validate(tokenString, secret string) (*JwtCustomClaims, error)
 	ParseFromBearerString(input string) string
-	GenerateToken(userID, lifeTimeMinutes int, secret string) (string, error)
-	GenerateAccessToken(id int) (string, error)
-	GenerateRefreshToken(id int) (string, error)
+	generateToken(userID, lifeTimeMinutes int, secret string) (string, error)
+	GeneratePairOfTokens(userID int) (string, string, error)
 }
 
 type TokenService struct {
+	cfg *models.AuthConfig
 }
 
 func (t TokenService) Validate(tokenString, secret string) (*JwtCustomClaims, error) {
@@ -57,7 +60,7 @@ func (t TokenService) ParseFromBearerString(input string) string {
 	return token
 }
 
-func (t TokenService) GenerateToken(userID, lifeTimeMinutes int, secret string) (string, error) {
+func (t TokenService) generateToken(userID, lifeTimeMinutes int, secret string) (string, error) {
 	claims := &JwtCustomClaims{
 		userID,
 		jwt.StandardClaims{
@@ -67,4 +70,17 @@ func (t TokenService) GenerateToken(userID, lifeTimeMinutes int, secret string) 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString([]byte(secret))
+}
+
+func (t TokenService) GeneratePairOfTokens(userID int) (string, string, error) {
+	accessToken, err := t.generateToken(userID, t.cfg.AccessLifeTimeMinutes, t.cfg.AccessSecretString)
+	if err != nil {
+		return "", "", err
+	}
+	refreshToken, err := t.generateToken(userID, t.cfg.RefreshLifeTimeMinutes, t.cfg.RefreshSecretString)
+	if err != nil {
+		return "", "", err
+	}
+
+	return accessToken, refreshToken, nil
 }

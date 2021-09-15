@@ -6,11 +6,11 @@ import (
 	"context"
 	"github.com/DTB4/logger/v2"
 	"net/http"
-	"os"
 )
 
-func NewAuthHandler(tokenService *services.TokenService, logger *logger.Logger) *AuthHandler {
+func NewAuthHandler(cfg *models.AuthConfig, tokenService *services.TokenService, logger *logger.Logger) *AuthHandler {
 	return &AuthHandler{
+		cfg:          cfg,
 		tokenService: tokenService,
 		logger:       logger,
 	}
@@ -24,14 +24,14 @@ type AuthHandlerI interface {
 type AuthHandler struct {
 	tokenService *services.TokenService
 	logger       *logger.Logger
+	cfg          *models.AuthConfig
 }
 
 func (ah AuthHandler) AccessTokenCheck(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		var accessSecretString = os.Getenv("ACCESS_SECRET_STRING")
 		bearerString := req.Header.Get("Authorization")
 		tokenString := ah.tokenService.ParseFromBearerString(bearerString)
-		claims, err := ah.tokenService.Validate(tokenString, accessSecretString)
+		claims, err := ah.tokenService.Validate(tokenString, ah.cfg.AccessSecretString)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
@@ -47,10 +47,9 @@ func (ah AuthHandler) AccessTokenCheck(next http.HandlerFunc) http.HandlerFunc {
 
 func (ah AuthHandler) RefreshTokenCheck(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		var refreshSecretString = os.Getenv("REFRESH_SECRET_STRING")
 		bearerString := req.Header.Get("Authorization")
 		tokenString := ah.tokenService.ParseFromBearerString(bearerString)
-		claims, err := ah.tokenService.Validate(tokenString, refreshSecretString)
+		claims, err := ah.tokenService.Validate(tokenString, ah.cfg.RefreshSecretString)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return

@@ -14,14 +14,12 @@ import (
 	"time"
 )
 
-func NewMenuParser(url, format string, logger *logger.Logger, restaurantRepo *repository.SupplierRepository, productsRepo *repository.ProductsRepository, frequencySeconds int) *MenuParser {
+func NewMenuParser(cfg *models.ParserConfig, logger *logger.Logger, restaurantRepo *repository.SupplierRepository, productsRepo *repository.ProductsRepository) *MenuParser {
 	return &MenuParser{
-		restaurantRepo:   restaurantRepo,
-		productsRepo:     productsRepo,
-		logger:           logger,
-		url:              url,
-		format:           format,
-		frequencySeconds: frequencySeconds,
+		cfg:            cfg,
+		restaurantRepo: restaurantRepo,
+		productsRepo:   productsRepo,
+		logger:         logger,
 	}
 }
 
@@ -38,28 +36,26 @@ type MenuParserI interface {
 }
 
 type MenuParser struct {
-	restaurantRepo   *repository.SupplierRepository
-	productsRepo     *repository.ProductsRepository
-	logger           *logger.Logger
-	url              string
-	format           string
-	frequencySeconds int
+	cfg            *models.ParserConfig
+	restaurantRepo *repository.SupplierRepository
+	productsRepo   *repository.ProductsRepository
+	logger         *logger.Logger
 }
 
 func (m MenuParser) TimedParsing() {
 	for {
 		m.Parse()
-		time.Sleep(time.Duration(m.frequencySeconds) * time.Second)
+		time.Sleep(time.Duration(m.cfg.ParsingDelaySeconds) * time.Second)
 	}
 }
 
 func (m MenuParser) Parse() {
 
-	m.logger.InfoLog("starting API parsing with timeout (s): ", m.frequencySeconds)
+	m.logger.InfoLog("starting API parsing with timeout (s): ", m.cfg.ParsingDelaySeconds)
 	ctx := context.Background()
 
 	restaurants, err := func(ctx context.Context) (*[]models.ParserRestaurant, error) {
-		ctx, cancel := context.WithTimeout(ctx, time.Duration(m.frequencySeconds/10)*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, time.Duration(m.cfg.ParsingDelaySeconds/10)*time.Second)
 		defer cancel()
 		return m.getAllRestaurants(ctx)
 	}(ctx)
@@ -81,7 +77,7 @@ func (m MenuParser) Parse() {
 }
 
 func (m MenuParser) getAllRestaurants(ctx context.Context) (*[]models.ParserRestaurant, error) {
-	url := m.url
+	url := m.cfg.URL
 	response, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -107,7 +103,7 @@ func (m MenuParser) getAllRestaurants(ctx context.Context) (*[]models.ParserRest
 }
 
 func (m MenuParser) getProductsFromRestByID(ctx context.Context, id int) (*[]models.ParserProduct, error) {
-	url := fmt.Sprintf(m.format, m.url, id)
+	url := fmt.Sprintf(m.cfg.FormatString, m.cfg.URL, id)
 
 	response, err := http.Get(url)
 	if err != nil {
@@ -187,7 +183,7 @@ func (m MenuParser) restaurantCheckUpdateCreate(restaurant *models.ParserRestaur
 	m.logger.InfoLog("Saved restaurant with ID ", lastRestID)
 	ctx := context.Background()
 	products, err := func(ctx context.Context, id int) (*[]models.ParserProduct, error) {
-		ctx, cancel := context.WithTimeout(ctx, time.Duration(m.frequencySeconds/10)*time.Second)
+		ctx, cancel := context.WithTimeout(ctx, time.Duration(m.cfg.ParsingDelaySeconds/10)*time.Second)
 		defer cancel()
 		return m.getProductsFromRestByID(ctx, restaurant.ID)
 	}(ctx, restaurant.ID)
@@ -240,7 +236,7 @@ func (m MenuParser) productCheckUpdateCreate(parsedProduct *models.ParserProduct
 }
 
 func (m MenuParser) deleteNonUpdatedRestaurants() {
-	result, err := m.restaurantRepo.SoftDeleteNotUpdated(m.frequencySeconds)
+	result, err := m.restaurantRepo.SoftDeleteNotUpdated(m.cfg.ParsingDelaySeconds)
 	if err != nil {
 		m.logger.ErrorLog("Failed to delete not updated restaurants", err)
 	}
@@ -255,7 +251,7 @@ func (m MenuParser) deleteNonUpdatedRestaurants() {
 }
 
 func (m MenuParser) deleteNonUpdatedProducts() {
-	result, err := m.productsRepo.SoftDeleteNotUpdated(m.frequencySeconds)
+	result, err := m.productsRepo.SoftDeleteNotUpdated(m.cfg.ParsingDelaySeconds)
 	if err != nil {
 		m.logger.ErrorLog("Failed to delete not updated products", err)
 	}
