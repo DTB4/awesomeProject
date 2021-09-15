@@ -17,9 +17,10 @@ type SupplierRepositoryI interface {
 	GetAll() (*[]models.Supplier, error)
 	Update(restaurant *models.Supplier) (sql.Result, error)
 	Delete(id int) (sql.Result, error)
+	SoftDelete(id int) (sql.Result, error)
 	Truncate() (sql.Result, error)
 	SearchByID(id int) (bool, error)
-	SoftDeleteNotUpdated() (sql.Result, error)
+	SoftDeleteNotUpdated(interval int) (sql.Result, error)
 }
 
 type SupplierRepository struct {
