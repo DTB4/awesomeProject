@@ -187,7 +187,7 @@ func (p UserHandler) Logout(w http.ResponseWriter, req *http.Request) {
 		userID := req.Context().Value("CurrentUser").(models.ActiveUserData).ID
 		err := p.tokenService.Logout(userID)
 		if err != nil {
-			http.Error(w, "fail to logout current user", http.StatusMethodNotAllowed)
+			http.Error(w, "fail to logout current user ", http.StatusMethodNotAllowed)
 			return
 		}
 		http.RedirectHandler("/index", http.StatusOK)
