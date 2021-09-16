@@ -28,7 +28,7 @@ type SupplierRepository struct {
 }
 
 func (s SupplierRepository) Create(supplier *models.Supplier) (sql.Result, error) {
-	result, err := s.db.Exec("INSERT INTO supliers (id, name, description, created, updated, img_url) VALUES (?, ?, ?, current_timestamp, current_timestamp , ?)", 0, supplier.Name, supplier.Description, supplier.ImgURL)
+	result, err := s.db.Exec("INSERT INTO suppliers (id, name, description, created, updated, img_url) VALUES (?, ?, ?, current_timestamp, current_timestamp , ?)", 0, supplier.Name, supplier.Description, supplier.ImgURL)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (s SupplierRepository) Create(supplier *models.Supplier) (sql.Result, error
 
 func (s SupplierRepository) GetByID(id int) (*models.Supplier, error) {
 	supplier := models.Supplier{}
-	rows, err := s.db.Query("SELECT * FROM supliers WHERE id=? AND deleted=FALSE", id)
+	rows, err := s.db.Query("SELECT * FROM suppliers WHERE id=? AND deleted=FALSE", id)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (s SupplierRepository) GetByID(id int) (*models.Supplier, error) {
 
 func (s SupplierRepository) GetByName(name string) (*models.Supplier, error) {
 	supplier := models.Supplier{}
-	rows, err := s.db.Query("SELECT * FROM supliers WHERE name=?", name)
+	rows, err := s.db.Query("SELECT * FROM suppliers WHERE name=?", name)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (s SupplierRepository) GetByName(name string) (*models.Supplier, error) {
 
 func (s SupplierRepository) GetAll() (*[]models.Supplier, error) {
 	var suppliers []models.Supplier
-	rows, err := s.db.Query("SELECT * FROM supliers WHERE deleted=false")
+	rows, err := s.db.Query("SELECT * FROM suppliers WHERE deleted=false")
 
 	if err != nil {
 		log.Fatal(err)
@@ -96,7 +96,7 @@ func (s SupplierRepository) GetAll() (*[]models.Supplier, error) {
 }
 
 func (s SupplierRepository) Update(supplier *models.Supplier) (sql.Result, error) {
-	result, err := s.db.Exec("UPDATE supliers SET name = ?, updated=current_timestamp, img_url=? WHERE id=?", supplier.Name, supplier.ImgURL, supplier.ID)
+	result, err := s.db.Exec("UPDATE suppliers SET name = ?, updated=current_timestamp, deleted=false, img_url=? WHERE id=?", supplier.Name, supplier.ImgURL, supplier.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +104,7 @@ func (s SupplierRepository) Update(supplier *models.Supplier) (sql.Result, error
 }
 
 func (s SupplierRepository) Delete(id int) (sql.Result, error) {
-	result, err := s.db.Exec("DELETE FROM supliers WHERE id=?", id)
+	result, err := s.db.Exec("DELETE FROM suppliers WHERE id=?", id)
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +112,7 @@ func (s SupplierRepository) Delete(id int) (sql.Result, error) {
 }
 
 func (s SupplierRepository) SoftDelete(id int) (sql.Result, error) {
-	result, err := s.db.Exec("UPDATE supliers SET deleted=true, updated=current_timestamp WHERE id=?", id)
+	result, err := s.db.Exec("UPDATE suppliers SET deleted=true, updated=current_timestamp WHERE id=?", id)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func (s SupplierRepository) SoftDelete(id int) (sql.Result, error) {
 }
 
 func (s SupplierRepository) Truncate() (sql.Result, error) {
-	result, err := s.db.Exec("DELETE FROM supliers")
+	result, err := s.db.Exec("DELETE FROM suppliers")
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (s SupplierRepository) Truncate() (sql.Result, error) {
 }
 
 func (s SupplierRepository) SoftDeleteALL() (sql.Result, error) {
-	result, err := s.db.Exec("UPDATE supliers SET deleted=true, updated=current_timestamp WHERE deleted!=true")
+	result, err := s.db.Exec("UPDATE suppliers SET deleted=true, updated=current_timestamp WHERE deleted!=true")
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +136,7 @@ func (s SupplierRepository) SoftDeleteALL() (sql.Result, error) {
 }
 
 func (s SupplierRepository) SearchByID(id int) (bool, error) {
-	rows, err := s.db.Query("SELECT * FROM supliers WHERE id=?", id)
+	rows, err := s.db.Query("SELECT * FROM suppliers WHERE id=?", id)
 	if err != nil {
 		return false, err
 	}
@@ -150,7 +150,7 @@ func (s SupplierRepository) SearchByID(id int) (bool, error) {
 	return false, nil
 }
 func (s SupplierRepository) SoftDeleteNotUpdated(interval int) (sql.Result, error) {
-	result, err := s.db.Exec("UPDATE supliers SET deleted=true, updated=current_timestamp WHERE deleted=false AND (current_timestamp-updated )>=?", interval)
+	result, err := s.db.Exec("UPDATE suppliers SET deleted=true, updated=current_timestamp WHERE deleted=false AND (current_timestamp-updated )>=?", interval)
 	if err != nil {
 		return nil, err
 	}

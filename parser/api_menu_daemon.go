@@ -68,8 +68,11 @@ func (m MenuParser) Parse() {
 	var wg = sync.WaitGroup{}
 	for i := range *restaurants {
 		wg.Add(1)
-		go m.restaurantCheckUpdateCreate(&(*restaurants)[i])
-		wg.Done()
+		go func(i int) {
+			m.restaurantCheckUpdateCreate(&(*restaurants)[i])
+			wg.Done()
+		}(i)
+
 	}
 	wg.Wait()
 	m.deleteNonUpdatedRestaurants()
@@ -151,13 +154,15 @@ func (m MenuParser) transformProductModel(parsedProduct *models.ParserProduct, i
 
 func (m MenuParser) restaurantCheckUpdateCreate(restaurant *models.ParserRestaurant) {
 	var wg = sync.WaitGroup{}
+	var lastSupplierID int
 	dbSupplier, err := m.supplierRepo.GetByName(restaurant.Name)
 	if err != nil {
 		m.logger.ErrorLog("fail to search supplier", err)
 		return
 	}
-	if dbSupplier != nil {
-		result, err := m.supplierRepo.SoftDelete(dbSupplier.ID)
+	if dbSupplier.ID != 0 {
+
+		result, err := m.supplierRepo.Update(dbSupplier)
 		if err != nil {
 			m.logger.ErrorLog("fail to edit supplier", err)
 			return
@@ -168,19 +173,22 @@ func (m MenuParser) restaurantCheckUpdateCreate(restaurant *models.ParserRestaur
 			return
 		}
 		m.logger.InfoLog("rows in restaurant renewed", rowsAffected)
+		lastSupplierID = dbSupplier.ID
+	} else {
 
+		result, err := m.supplierRepo.Create(m.transformRestaurantModel(restaurant))
+		if err != nil {
+			m.logger.ErrorLog("fail to create new supplier", err)
+			return
+		}
+		lastRestID, err := result.LastInsertId()
+		if err != nil {
+			m.logger.ErrorLog("fail to get lastInsertID from result", err)
+			return
+		}
+		m.logger.InfoLog("Saved restaurant with ID ", lastRestID)
+		lastSupplierID = int(lastRestID)
 	}
-	result, err := m.supplierRepo.Create(m.transformRestaurantModel(restaurant))
-	if err != nil {
-		m.logger.ErrorLog("fail to create new supplier", err)
-		return
-	}
-	lastRestID, err := result.LastInsertId()
-	if err != nil {
-		m.logger.ErrorLog("fail to get lastInsertID from result", err)
-		return
-	}
-	m.logger.InfoLog("Saved restaurant with ID ", lastRestID)
 	ctx := context.Background()
 	products, err := func(ctx context.Context, id int) (*[]models.ParserProduct, error) {
 		ctx, cancel := context.WithTimeout(ctx, time.Duration(m.cfg.ParsingDelaySeconds/10)*time.Second)
@@ -193,23 +201,28 @@ func (m MenuParser) restaurantCheckUpdateCreate(restaurant *models.ParserRestaur
 	}
 	for i := range *products {
 		wg.Add(1)
-		go m.productCheckUpdateCreate(&(*products)[i], dbSupplier.ID, int(lastRestID))
-		wg.Done()
+		go func(i int) {
+			m.productCheckUpdateCreate(&(*products)[i], lastSupplierID)
+			wg.Done()
+		}(i)
+
 	}
 	wg.Wait()
 	m.deleteNonUpdatedProducts()
 }
 
-func (m MenuParser) productCheckUpdateCreate(parsedProduct *models.ParserProduct, oldRestID int, newRestID int) {
+func (m MenuParser) productCheckUpdateCreate(parsedProduct *models.ParserProduct, supplierID int) {
 
-	product := m.transformProductModel(parsedProduct, newRestID)
-	oldProductID, err := m.productsRepo.SearchBySupIDAndName(oldRestID, parsedProduct.Name)
+	oldProductID, err := m.productsRepo.SearchBySupIDAndName(supplierID, parsedProduct.Name)
+	product := m.transformProductModel(parsedProduct, supplierID)
+
 	if err != nil {
 		m.logger.ErrorLog("fail to search existed product", err)
 		return
 	}
 	if oldProductID != 0 {
-		result, err := m.productsRepo.SoftDelete(oldProductID)
+		product.ID = oldProductID
+		result, err := m.productsRepo.Update(product)
 		if err != nil {
 			m.logger.ErrorLog("fail to edit existed product", err)
 			return
@@ -220,19 +233,19 @@ func (m MenuParser) productCheckUpdateCreate(parsedProduct *models.ParserProduct
 			return
 		}
 		m.logger.InfoLog(" rows in product renewed", rowsAffected)
+	} else {
+		result, err := m.productsRepo.Create(product)
+		if err != nil {
+			m.logger.ErrorLog("fail to create new product", err)
+			return
+		}
+		lastProdID, err := result.LastInsertId()
+		if err != nil {
+			m.logger.ErrorLog("fail to get lastInsertID from result", err)
+			return
+		}
+		m.logger.InfoLog("Product with ID, saved to DB", lastProdID)
 	}
-	result, err := m.productsRepo.Create(product)
-	if err != nil {
-		m.logger.ErrorLog("fail to create new product", err)
-		return
-	}
-	lastProdID, err := result.LastInsertId()
-	if err != nil {
-		m.logger.ErrorLog("fail to get lastInsertID from result", err)
-		return
-	}
-	m.logger.InfoLog("Product with ID, saved to DB", lastProdID)
-
 }
 
 func (m MenuParser) deleteNonUpdatedRestaurants() {
@@ -246,7 +259,9 @@ func (m MenuParser) deleteNonUpdatedRestaurants() {
 	}
 	if rowsAffected != 0 {
 		m.logger.InfoLog("Rows was deleted from restaurants due to old update date", rowsAffected)
-
+	}
+	if rowsAffected == 0 {
+		m.logger.InfoLog("All suppliers is up to date", rowsAffected)
 	}
 }
 
@@ -261,6 +276,9 @@ func (m MenuParser) deleteNonUpdatedProducts() {
 	}
 	if rowsAffected != 0 {
 		m.logger.InfoLog("Rows was deleted in products due to old update date", rowsAffected)
+	}
+	if rowsAffected == 0 {
+		m.logger.InfoLog("All products is up to date", rowsAffected)
 
 	}
 }

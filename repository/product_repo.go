@@ -4,7 +4,6 @@ import (
 	"awesomeProject/models"
 	"database/sql"
 	"log"
-	"time"
 )
 
 func NewProductsRepository(db *sql.DB) *ProductsRepository {
@@ -121,7 +120,7 @@ func (p ProductsRepository) GetALLByType(productType string) (*[]models.Product,
 }
 
 func (p ProductsRepository) Update(product *models.Product) (sql.Result, error) {
-	result, err := p.db.Exec("UPDATE products SET name=?, type=?, description=?, price=?, updated=current_timestamp, img_url=?, ingredients=? WHERE id=?", product.Name, product.Type, product.Description, product.Price, time.Now(), product.ImgURL, product.Ingredients, product.ID)
+	result, err := p.db.Exec("UPDATE products SET name=?, type=?, description=?, price=?, updated=current_timestamp, deleted=false, img_url=?, ingredients=? WHERE id=?", product.Name, product.Type, product.Description, product.Price, product.ImgURL, product.Ingredients, product.ID)
 	if err != nil {
 		return nil, err
 	}

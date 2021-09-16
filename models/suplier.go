@@ -17,9 +17,11 @@ type ResponseBodyRestaurants struct {
 }
 
 type ParserRestaurant struct {
-	ID    int    `json:"id"`
-	Image string `json:"image"`
-	Name  string `json:"name"`
+	ID       int       `json:"id"`
+	Image    string    `json:"image"`
+	Name     string    `json:"name"`
+	SType    string    `json:"s_type"`
+	WorkTime time.Time `json:"work_time"`
 }
 
 type SupplierResponse struct {
