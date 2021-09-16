@@ -41,6 +41,7 @@ func Start(cfg *models.Config) {
 	mux.HandleFunc("/profile", authHandler.AccessTokenCheck(userHandler.ShowUserProfile))
 	mux.HandleFunc("/editprofile", authHandler.AccessTokenCheck(userHandler.EditUserProfile))
 	mux.HandleFunc("/refresh", authHandler.RefreshTokenCheck(userHandler.Refresh))
+	mux.HandleFunc("/logout", authHandler.AccessTokenCheck(userHandler.Logout))
 	mux.HandleFunc("/login", userHandler.Login)
 
 	mux.HandleFunc("/createorder", authHandler.AccessTokenCheck(orderHandler.Create))
