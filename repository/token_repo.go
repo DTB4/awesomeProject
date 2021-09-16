@@ -14,7 +14,7 @@ func NewTokenRepository(db *sql.DB) *TokenRepository {
 type TokenRepositoryI interface {
 	GetByUID(uID string) (int, error)
 	Update(userID int, uID string) (sql.Result, error)
-	Delete(userID string) (sql.Result, error)
+	NullUID(userID int) (sql.Result, error)
 }
 
 type TokenRepository struct {
@@ -48,8 +48,8 @@ func (t TokenRepository) Update(userID int, uID string) (sql.Result, error) {
 	return result, nil
 }
 
-func (t TokenRepository) Delete(userID string) (sql.Result, error) {
-	result, err := t.db.Exec("DELETE FROM uids WHERE user_id=?", userID)
+func (t TokenRepository) NullUID(userID int) (sql.Result, error) {
+	result, err := t.db.Exec("UPDATE uids SET uid=NULL WHERE user_id=?", userID)
 	if err != nil {
 		return nil, err
 	}

@@ -36,7 +36,7 @@ func (ah AuthHandler) AccessTokenCheck(next http.HandlerFunc) http.HandlerFunc {
 		}
 		userFromDB, err := ah.tokenService.CheckUID(claims.UID)
 		if claims.ID != userFromDB {
-			http.Error(w, "only one active device", http.StatusUnauthorized)
+			http.Error(w, "logout", http.StatusUnauthorized)
 			return
 		}
 		curUser := models.ActiveUserData{

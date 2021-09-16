@@ -31,6 +31,7 @@ type TokenServiceI interface {
 	generateToken(userID, lifeTimeMinutes int, secret string) (string, string, error)
 	GeneratePairOfTokens(userID int) (string, string, error)
 	CheckUID(uID string) (int, error)
+	Logout(userID int) error
 }
 
 type TokenService struct {
@@ -116,4 +117,19 @@ func (t TokenService) CheckUID(uID string) (int, error) {
 		return 0, err
 	}
 	return userID, nil
+}
+
+func (t TokenService) Logout(userID int) error {
+	result, err := t.tokenRepository.NullUID(userID)
+	if err != nil {
+		return err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.New("nothing changed in UIDs row")
+	}
+	return nil
 }
