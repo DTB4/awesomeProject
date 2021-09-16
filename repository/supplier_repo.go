@@ -37,7 +37,7 @@ func (s SupplierRepository) Create(supplier *models.Supplier) (sql.Result, error
 
 func (s SupplierRepository) GetByID(id int) (*models.Supplier, error) {
 	supplier := models.Supplier{}
-	rows, err := s.db.Query("SELECT * FROM supliers WHERE id=?", id)
+	rows, err := s.db.Query("SELECT * FROM supliers WHERE id=? AND deleted=FALSE", id)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +75,7 @@ func (s SupplierRepository) GetByName(name string) (*models.Supplier, error) {
 
 func (s SupplierRepository) GetAll() (*[]models.Supplier, error) {
 	var suppliers []models.Supplier
-	rows, err := s.db.Query("SELECT * FROM supliers")
+	rows, err := s.db.Query("SELECT * FROM supliers WHERE deleted=false")
 
 	if err != nil {
 		log.Fatal(err)

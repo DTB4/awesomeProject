@@ -10,7 +10,7 @@ type Product struct {
 	Price       float32   `json:"price"`
 	Created     time.Time `json:"created"`
 	Updated     time.Time `json:"updated"`
-	Deleted     time.Time `json:"deleted"`
+	Deleted     bool      `json:"deleted"`
 	IDSupplier  int       `json:"id_supplier"`
 	ImgURL      string    `json:"img_url"`
 	Ingredients string    `json:"ingredients"`
@@ -26,4 +26,26 @@ type ParserProduct struct {
 	Price       float32  `json:"price"`
 	Type        string   `json:"type"`
 	Ingredients []string `json:"ingredients"`
+}
+
+type ProductRequest struct {
+	ID int `json:"id"`
+}
+
+type ProductResponse struct {
+	ID          int     `json:"id"`
+	Name        string  `json:"name"`
+	Type        string  `json:"type"`
+	Description string  `json:"description"`
+	Price       float32 `json:"price"`
+	ImgURL      string  `json:"img_url"`
+	Ingredients string  `json:"ingredients"`
+}
+
+type ProductTypeRequest struct {
+	ProductType string `json:"product_type"`
+}
+
+type ProductSupplierIDRequest struct {
+	SupplierID int `json:"supplier_id"`
 }

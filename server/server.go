@@ -27,10 +27,14 @@ func Start(cfg *models.Config) {
 	orderService := services.NewOrderService(orderRepository, orderProductsRepository)
 	userService := services.NewUserService(userRepository)
 	tokenService := services.NewTokenService(&cfg.AuthConfig, tokenRepository)
+	supplierService := services.NewSupplierService(suppliersRepository)
+	productService := services.NewProductService(productRepository)
 
 	authHandler := midleware.NewAuthHandler(tokenService, myLogger)
 	orderHandler := handlers.NewOrderHandler(orderService, myLogger)
 	userHandler := handlers.NewUserHandler(userService, tokenService, myLogger)
+	supplierHandler := handlers.NewSupplierHandler(supplierService, myLogger)
+	productHandler := handlers.NewProductHandler(productService, myLogger)
 
 	menuParser := parser.NewMenuParser(&cfg.ParserConfig, myLogger, suppliersRepository, productRepository)
 	go menuParser.TimedParsing()
@@ -48,6 +52,13 @@ func Start(cfg *models.Config) {
 	mux.HandleFunc("/getorder", authHandler.AccessTokenCheck(orderHandler.GetByID))
 	mux.HandleFunc("/getmyorders", authHandler.AccessTokenCheck(orderHandler.GetAll))
 	mux.HandleFunc("/updateorder", authHandler.AccessTokenCheck(orderHandler.Update))
+
+	mux.HandleFunc("/supplier", supplierHandler.GetSupplierByID)
+	mux.HandleFunc("/suppliers", supplierHandler.GetAllSuppliers)
+	mux.HandleFunc("/product", productHandler.GetProductDyID)
+	mux.HandleFunc("/products", productHandler.GetAll)
+	mux.HandleFunc("/productsbytype", productHandler.GetAllByType)
+	mux.HandleFunc("/productsbysupplier", productHandler.GetAllBySupplierID)
 
 	myLogger.ErrorLog("Fail to start server", http.ListenAndServe(cfg.ServerPort, mux))
 

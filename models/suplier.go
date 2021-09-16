@@ -21,3 +21,14 @@ type ParserRestaurant struct {
 	Image string `json:"image"`
 	Name  string `json:"name"`
 }
+
+type SupplierResponse struct {
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	ImgURL      string `json:"img_url"`
+}
+
+type SupplierRequest struct {
+	ID int `json:"id"`
+}

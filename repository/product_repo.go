@@ -16,6 +16,7 @@ type ProductsRepositoryI interface {
 	GetByID(id int) (*models.Product, error)
 	GetAll() (*[]models.Product, error)
 	GetAllBySupplierID(id int) (*[]models.Product, error)
+	GetALLByType(typ string) (*[]models.Product, error)
 	Update(product *models.Product) (sql.Result, error)
 	Delete(id int) (sql.Result, error)
 	SoftDelete(id int) (sql.Result, error)
@@ -39,12 +40,12 @@ func (p ProductsRepository) Create(product *models.Product) (sql.Result, error) 
 
 func (p ProductsRepository) GetByID(id int) (*models.Product, error) {
 	product := models.Product{}
-	rows, err := p.db.Query("SELECT * FROM products WHERE id=?", id)
+	rows, err := p.db.Query("SELECT * FROM products WHERE id=? AND deleted=false", id)
 	if err != nil {
 		return nil, err
 	}
 	for rows.Next() {
-		err = rows.Scan(&product.ID, &product.Name, &product.Type, &product.Description, &product.Price, &product.Created, &product.Updated, &product.Deleted, &product.IDSupplier, &product.ImgURL)
+		err = rows.Scan(&product.ID, &product.Name, &product.Type, &product.Description, &product.Price, &product.Created, &product.Updated, &product.Deleted, &product.IDSupplier, &product.ImgURL, &product.Ingredients)
 		if err != nil {
 			return nil, err
 		}
@@ -58,13 +59,34 @@ func (p ProductsRepository) GetByID(id int) (*models.Product, error) {
 
 func (p ProductsRepository) GetAll() (*[]models.Product, error) {
 	var products []models.Product
-	rows, err := p.db.Query("SELECT * FROM products")
+	rows, err := p.db.Query("SELECT * FROM products WHERE deleted=false")
+	if err != nil {
+		return nil, err
+	}
+	pr := models.Product{}
+	for rows.Next() {
+		err = rows.Scan(&pr.ID, &pr.Name, &pr.Type, &pr.Description, &pr.Price, &pr.Created, &pr.Updated, &pr.Deleted, &pr.IDSupplier, &pr.ImgURL, &pr.Ingredients)
+		if err != nil {
+			log.Println(err)
+		}
+		products = append(products, pr)
+	}
+	err = rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	return &products, nil
+}
+
+func (p ProductsRepository) GetAllBySupplierID(id int) (*[]models.Product, error) {
+	var products []models.Product
+	rows, err := p.db.Query("SELECT * FROM products WHERE id_supplier=? AND deleted=false", id)
 	if err != nil {
 		return nil, err
 	}
 	product := models.Product{}
 	for rows.Next() {
-		err = rows.Scan(&product.ID, &product.Name)
+		err = rows.Scan(&product.ID, &product.Name, &product.Type, &product.Description, &product.Price, &product.Created, &product.Updated, &product.Deleted, &product.IDSupplier, &product.ImgURL, &product.Ingredients)
 		if err != nil {
 			log.Println(err)
 		}
@@ -77,9 +99,9 @@ func (p ProductsRepository) GetAll() (*[]models.Product, error) {
 	return &products, nil
 }
 
-func (p ProductsRepository) GetAllBySupplierID(id int) (*[]models.Product, error) {
+func (p ProductsRepository) GetALLByType(productType string) (*[]models.Product, error) {
 	var products []models.Product
-	rows, err := p.db.Query("SELECT * FROM products WHERE id=?", id)
+	rows, err := p.db.Query("SELECT * FROM products WHERE type=? AND deleted=false", productType)
 	if err != nil {
 		return nil, err
 	}
