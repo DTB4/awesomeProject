@@ -13,22 +13,26 @@ func NewOrderProductsRepository(db *sql.DB) *OrderProductsRepository {
 }
 
 type OrderProductsRepositoryI interface {
-	Create(orderProduct *models.OrderProduct) (sql.Result, error)
+	Create(orderProduct *models.OrderProduct) (int, error)
 	GetByOrderID(id int) (*[]models.OrderProduct, error)
-	Update(orderProduct *models.OrderProduct) (sql.Result, error)
-	DeleteByIDs(orderID, productID int) (sql.Result, error)
+	Update(orderProduct *models.OrderProduct) (int, error)
+	DeleteByIDs(orderID, productID int) (int, error)
 }
 
 type OrderProductsRepository struct {
 	db *sql.DB
 }
 
-func (op OrderProductsRepository) Create(orderProduct *models.OrderProduct) (sql.Result, error) {
+func (op OrderProductsRepository) Create(orderProduct *models.OrderProduct) (int, error) {
 	result, err := op.db.Exec("INSERT INTO order_product (order_id, product_id, quantity) VALUES (?, ?, ?)", orderProduct.OrderID, orderProduct.ProductID, orderProduct.Quantity)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	lastID, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return int(lastID), nil
 }
 
 func (op OrderProductsRepository) GetByOrderID(id int) (*[]models.OrderProduct, error) {
@@ -52,18 +56,26 @@ func (op OrderProductsRepository) GetByOrderID(id int) (*[]models.OrderProduct, 
 	return &orderProductSlice, nil
 }
 
-func (op OrderProductsRepository) Update(orderProduct *models.OrderProduct) (sql.Result, error) {
+func (op OrderProductsRepository) Update(orderProduct *models.OrderProduct) (int, error) {
 	result, err := op.db.Exec("UPDATE order_product SET quantity=? WHERE order_id=? AND product_id=?", orderProduct.Quantity, orderProduct.OrderID, orderProduct.ProductID)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }
 
-func (op OrderProductsRepository) DeleteByIDs(orderID, productID int) (sql.Result, error) {
+func (op OrderProductsRepository) DeleteByIDs(orderID, productID int) (int, error) {
 	result, err := op.db.Exec("DELETE from order_product WHERE order_id=? AND product_id=?", orderID, productID)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }

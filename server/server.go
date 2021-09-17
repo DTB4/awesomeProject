@@ -55,6 +55,9 @@ func Start(cfg *models.Config) {
 
 	mux.HandleFunc("/supplier", supplierHandler.GetSupplierByID)
 	mux.HandleFunc("/suppliers", supplierHandler.GetAllSuppliers)
+	mux.HandleFunc("/supplierstype", supplierHandler.GetSuppliersByType)
+	mux.HandleFunc("/supplierstime", supplierHandler.GetSuppliersByTime)
+
 	mux.HandleFunc("/product", productHandler.GetProductDyID)
 	mux.HandleFunc("/products", productHandler.GetAll)
 	mux.HandleFunc("/productsbytype", productHandler.GetAllByType)

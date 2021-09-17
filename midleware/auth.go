@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func NewAuthHandler(tokenService *services.TokenService, logger *logger.Logger) *AuthHandler {
+func NewAuthHandler(tokenService services.TokenServiceI, logger *logger.Logger) *AuthHandler {
 	return &AuthHandler{
 		tokenService: tokenService,
 		logger:       logger,
@@ -21,7 +21,7 @@ type AuthHandlerI interface {
 }
 
 type AuthHandler struct {
-	tokenService *services.TokenService
+	tokenService services.TokenServiceI
 	logger       *logger.Logger
 }
 

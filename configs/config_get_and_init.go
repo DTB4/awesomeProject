@@ -12,7 +12,7 @@ func NewConfig(forTesting bool) {
 
 	fileName := "configs/config.env"
 	if forTesting {
-		fileName = "configs/test_config.env"
+		fileName = "../configs/test_config.env"
 	}
 
 	b, err := os.ReadFile(fileName)

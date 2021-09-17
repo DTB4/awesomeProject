@@ -41,17 +41,12 @@ func (o OrderHandler) Create(w http.ResponseWriter, req *http.Request) {
 			IDUser: req.Context().Value("CurrentUser").(models.ActiveUserData).ID,
 			Status: "created",
 		}
-		orderCreationResult, err := o.orderService.CreateOrder(&order)
+		orderID, err := o.orderService.CreateOrder(&order)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		orderID, err := orderCreationResult.LastInsertId()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		orderProductsCreationResult, err := o.orderService.CreateOrderProducts(int(orderID), &orderProducts)
+		orderProductsCreationResult, err := o.orderService.CreateOrderProducts(orderID, &orderProducts)
 		if err != nil || orderProductsCreationResult == 0 {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -126,12 +121,7 @@ func (o OrderHandler) Update(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		result, err := o.orderService.Update(updateOrderRequest)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		rowsAffected, err := result.RowsAffected()
+		rowsAffected, err := o.orderService.Update(updateOrderRequest)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

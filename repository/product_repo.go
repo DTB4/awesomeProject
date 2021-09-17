@@ -4,7 +4,6 @@ import (
 	"awesomeProject/models"
 	"database/sql"
 	"log"
-	"time"
 )
 
 func NewProductsRepository(db *sql.DB) *ProductsRepository {
@@ -12,30 +11,34 @@ func NewProductsRepository(db *sql.DB) *ProductsRepository {
 }
 
 type ProductsRepositoryI interface {
-	Create(product *models.Product) (sql.Result, error)
+	Create(product *models.Product) (int, error)
 	GetByID(id int) (*models.Product, error)
 	GetAll() (*[]models.Product, error)
 	GetAllBySupplierID(id int) (*[]models.Product, error)
 	GetALLByType(typ string) (*[]models.Product, error)
-	Update(product *models.Product) (sql.Result, error)
-	Delete(id int) (sql.Result, error)
-	SoftDelete(id int) (sql.Result, error)
-	Truncate() (sql.Result, error)
-	SoftDeleteALL() (sql.Result, error)
+	Update(product *models.Product) (int, error)
+	Delete(id int) (int, error)
+	SoftDelete(id int) (int, error)
+	Truncate() (int, error)
+	SoftDeleteALL() (int, error)
 	SearchBySupIDAndName(supplierID int, name string) (int, error)
-	SoftDeleteNotUpdated(interval int) (sql.Result, error)
+	SoftDeleteNotUpdated(interval int, supplierID int) (int, error)
 }
 
 type ProductsRepository struct {
 	db *sql.DB
 }
 
-func (p ProductsRepository) Create(product *models.Product) (sql.Result, error) {
-	result, err := p.db.Exec("INSERT INTO products (id, name, type, description, price , created, updated, id_supplier, img_url, ingredients) VALUES (?, ?, ?, ?, ?, current_timestamp, current_timestamp, ?, ?, ?)", 0, product.Name, product.Type, product.Description, product.Price, product.IDSupplier, product.ImgURL, product.Ingredients)
+func (p ProductsRepository) Create(product *models.Product) (int, error) {
+	result, err := p.db.Exec("INSERT INTO products (id, name, type, price , created, updated, id_supplier, img_url, ingredients) VALUES (?, ?, ?, ?, current_timestamp, current_timestamp, ?, ?, ?)", 0, product.Name, product.Type, product.Price, product.IDSupplier, product.ImgURL, product.Ingredients)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	lastID, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return int(lastID), nil
 }
 
 func (p ProductsRepository) GetByID(id int) (*models.Product, error) {
@@ -45,7 +48,7 @@ func (p ProductsRepository) GetByID(id int) (*models.Product, error) {
 		return nil, err
 	}
 	for rows.Next() {
-		err = rows.Scan(&product.ID, &product.Name, &product.Type, &product.Description, &product.Price, &product.Created, &product.Updated, &product.Deleted, &product.IDSupplier, &product.ImgURL, &product.Ingredients)
+		err = rows.Scan(&product.ID, &product.Name, &product.Type, &product.Price, &product.Created, &product.Updated, &product.Deleted, &product.IDSupplier, &product.ImgURL, &product.Ingredients)
 		if err != nil {
 			return nil, err
 		}
@@ -65,7 +68,7 @@ func (p ProductsRepository) GetAll() (*[]models.Product, error) {
 	}
 	pr := models.Product{}
 	for rows.Next() {
-		err = rows.Scan(&pr.ID, &pr.Name, &pr.Type, &pr.Description, &pr.Price, &pr.Created, &pr.Updated, &pr.Deleted, &pr.IDSupplier, &pr.ImgURL, &pr.Ingredients)
+		err = rows.Scan(&pr.ID, &pr.Name, &pr.Type, &pr.Price, &pr.Created, &pr.Updated, &pr.Deleted, &pr.IDSupplier, &pr.ImgURL, &pr.Ingredients)
 		if err != nil {
 			log.Println(err)
 		}
@@ -86,7 +89,7 @@ func (p ProductsRepository) GetAllBySupplierID(id int) (*[]models.Product, error
 	}
 	product := models.Product{}
 	for rows.Next() {
-		err = rows.Scan(&product.ID, &product.Name, &product.Type, &product.Description, &product.Price, &product.Created, &product.Updated, &product.Deleted, &product.IDSupplier, &product.ImgURL, &product.Ingredients)
+		err = rows.Scan(&product.ID, &product.Name, &product.Type, &product.Price, &product.Created, &product.Updated, &product.Deleted, &product.IDSupplier, &product.ImgURL, &product.Ingredients)
 		if err != nil {
 			log.Println(err)
 		}
@@ -107,7 +110,7 @@ func (p ProductsRepository) GetALLByType(productType string) (*[]models.Product,
 	}
 	product := models.Product{}
 	for rows.Next() {
-		err = rows.Scan(&product.ID, &product.Name, &product.Type, &product.Description, &product.Price, &product.Created, &product.Updated, &product.Deleted, &product.IDSupplier, &product.ImgURL, &product.Ingredients)
+		err = rows.Scan(&product.ID, &product.Name, &product.Type, &product.Price, &product.Created, &product.Updated, &product.Deleted, &product.IDSupplier, &product.ImgURL, &product.Ingredients)
 		if err != nil {
 			log.Println(err)
 		}
@@ -120,44 +123,64 @@ func (p ProductsRepository) GetALLByType(productType string) (*[]models.Product,
 	return &products, nil
 }
 
-func (p ProductsRepository) Update(product *models.Product) (sql.Result, error) {
-	result, err := p.db.Exec("UPDATE products SET name=?, type=?, description=?, price=?, updated=current_timestamp, img_url=?, ingredients=? WHERE id=?", product.Name, product.Type, product.Description, product.Price, time.Now(), product.ImgURL, product.Ingredients, product.ID)
+func (p ProductsRepository) Update(product *models.Product) (int, error) {
+	result, err := p.db.Exec("UPDATE products SET name=?, type=?, price=?, updated=current_timestamp, deleted=false, img_url=?, ingredients=? WHERE id=?", product.Name, product.Type, product.Price, product.ImgURL, product.Ingredients, product.ID)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }
 
-func (p ProductsRepository) SoftDelete(id int) (sql.Result, error) {
+func (p ProductsRepository) SoftDelete(id int) (int, error) {
 	result, err := p.db.Exec("UPDATE products SET deleted=true, updated=current_timestamp WHERE id=?", id)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }
 
-func (p ProductsRepository) Delete(id int) (sql.Result, error) {
+func (p ProductsRepository) Delete(id int) (int, error) {
 	result, err := p.db.Exec("DELETE FROM products WHERE id=?", id)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }
 
-func (p ProductsRepository) Truncate() (sql.Result, error) {
+func (p ProductsRepository) Truncate() (int, error) {
 	result, err := p.db.Exec("DELETE FROM products")
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }
 
-func (p ProductsRepository) SoftDeleteALL() (sql.Result, error) {
+func (p ProductsRepository) SoftDeleteALL() (int, error) {
 	result, err := p.db.Exec("UPDATE products SET deleted=true, updated=current_timestamp WHERE deleted!=true")
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }
 
 func (p ProductsRepository) SearchBySupIDAndName(supplierID int, name string) (int, error) {
@@ -179,10 +202,14 @@ func (p ProductsRepository) SearchBySupIDAndName(supplierID int, name string) (i
 	return product.ID, nil
 }
 
-func (p ProductsRepository) SoftDeleteNotUpdated(interval int) (sql.Result, error) {
-	result, err := p.db.Exec("UPDATE products SET deleted=true, updated=current_timestamp WHERE deleted=false AND (current_timestamp-updated )>=?", interval)
+func (p ProductsRepository) SoftDeleteNotUpdated(interval int, supplierID int) (int, error) {
+	result, err := p.db.Exec("UPDATE products SET deleted=true, updated=current_timestamp WHERE id_supplier=? AND deleted=false AND (current_timestamp-updated )>=?", supplierID, interval)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }

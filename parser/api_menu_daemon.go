@@ -26,10 +26,10 @@ func NewMenuParser(cfg *models.ParserConfig, logger *logger.Logger, supplierRepo
 type MenuParserI interface {
 	TimedParsing()
 	productCheckUpdateCreate(parsedProduct *models.ParserProduct, oldRestID int, newRestID int)
-	restaurantCheckUpdateCreate(restaurant *models.ParserRestaurant)
-	getAllRestaurants() ([]models.ParserRestaurant, error)
+	restaurantCheckUpdateCreate(restaurant *models.ParsedSupplier)
+	getAllRestaurants() ([]models.ParsedSupplier, error)
 	getProductsFromRestByID(id int) (*[]models.ParserProduct, error)
-	transformRestaurantModel(parsedRestaurant *models.ParserRestaurant) *models.Supplier
+	transformRestaurantModel(parsedRestaurant *models.ParsedSupplier) *models.Supplier
 	transformProductModel(parsedProduct *models.ParserProduct, id int) *models.Product
 	deleteNonUpdatedRestaurants()
 	deleteNonUpdatedProducts()
@@ -54,7 +54,7 @@ func (m MenuParser) Parse() {
 	m.logger.InfoLog("starting API parsing with timeout (s): ", m.cfg.ParsingDelaySeconds)
 	ctx := context.Background()
 
-	restaurants, err := func(ctx context.Context) (*[]models.ParserRestaurant, error) {
+	restaurants, err := func(ctx context.Context) (*[]models.ParsedSupplier, error) {
 		ctx, cancel := context.WithTimeout(ctx, time.Duration(m.cfg.ParsingDelaySeconds/10)*time.Second)
 		defer cancel()
 		return m.getAllRestaurants(ctx)
@@ -68,15 +68,18 @@ func (m MenuParser) Parse() {
 	var wg = sync.WaitGroup{}
 	for i := range *restaurants {
 		wg.Add(1)
-		go m.restaurantCheckUpdateCreate(&(*restaurants)[i])
-		wg.Done()
+		go func(i int) {
+			m.supplierCheckUpdateCreate(&(*restaurants)[i])
+			wg.Done()
+		}(i)
+
 	}
 	wg.Wait()
 	m.deleteNonUpdatedRestaurants()
 
 }
 
-func (m MenuParser) getAllRestaurants(ctx context.Context) (*[]models.ParserRestaurant, error) {
+func (m MenuParser) getAllRestaurants(ctx context.Context) (*[]models.ParsedSupplier, error) {
 	url := m.cfg.URL
 	response, err := http.Get(url)
 	if err != nil {
@@ -98,7 +101,7 @@ func (m MenuParser) getAllRestaurants(ctx context.Context) (*[]models.ParserRest
 	case <-ctx.Done():
 		return nil, errors.New("timeout in getAllRestaurants")
 	default:
-		return &responseBodyRestaurants.Restaurants, nil
+		return &responseBodyRestaurants.Suppliers, nil
 	}
 }
 
@@ -128,11 +131,14 @@ func (m MenuParser) getProductsFromRestByID(ctx context.Context, id int) (*[]mod
 	}
 }
 
-func (m MenuParser) transformRestaurantModel(parsedRestaurant *models.ParserRestaurant) *models.Supplier {
+func (m MenuParser) transformSupplierModel(parsedRestaurant *models.ParsedSupplier) *models.Supplier {
 	supplier := models.Supplier{
-		ImgURL: parsedRestaurant.Image,
-		ID:     parsedRestaurant.ID,
-		Name:   parsedRestaurant.Name,
+		ImgURL:  parsedRestaurant.Image,
+		ID:      parsedRestaurant.ID,
+		Name:    parsedRestaurant.Name,
+		Type:    parsedRestaurant.Type,
+		Opening: parsedRestaurant.WorkingHours.Opening,
+		Closing: parsedRestaurant.WorkingHours.Closing,
 	}
 	return &supplier
 }
@@ -149,118 +155,105 @@ func (m MenuParser) transformProductModel(parsedProduct *models.ParserProduct, i
 	return &product
 }
 
-func (m MenuParser) restaurantCheckUpdateCreate(restaurant *models.ParserRestaurant) {
+func (m MenuParser) supplierCheckUpdateCreate(supplier *models.ParsedSupplier) {
 	var wg = sync.WaitGroup{}
-	dbSupplier, err := m.supplierRepo.GetByName(restaurant.Name)
+	var lastSupplierID int
+	dbSupplier, err := m.supplierRepo.GetByName(supplier.Name)
 	if err != nil {
 		m.logger.ErrorLog("fail to search supplier", err)
 		return
 	}
-	if dbSupplier != nil {
-		result, err := m.supplierRepo.SoftDelete(dbSupplier.ID)
+	if dbSupplier.ID != 0 {
+
+		rowsAffected, err := m.supplierRepo.Update(dbSupplier)
 		if err != nil {
 			m.logger.ErrorLog("fail to edit supplier", err)
 			return
 		}
-		rowsAffected, err := result.RowsAffected()
+		m.logger.InfoLog("rows in supplier renewed", rowsAffected)
+		lastSupplierID = dbSupplier.ID
+	} else {
+
+		lastRestID, err := m.supplierRepo.Create(m.transformSupplierModel(supplier))
 		if err != nil {
-			m.logger.ErrorLog("fail to get rowsAffected from result", err)
+			m.logger.ErrorLog("fail to create new supplier", err)
 			return
 		}
-		m.logger.InfoLog("rows in restaurant renewed", rowsAffected)
-
+		m.logger.InfoLog("Saved supplier with ID ", lastRestID)
+		lastSupplierID = lastRestID
 	}
-	result, err := m.supplierRepo.Create(m.transformRestaurantModel(restaurant))
-	if err != nil {
-		m.logger.ErrorLog("fail to create new supplier", err)
-		return
-	}
-	lastRestID, err := result.LastInsertId()
-	if err != nil {
-		m.logger.ErrorLog("fail to get lastInsertID from result", err)
-		return
-	}
-	m.logger.InfoLog("Saved restaurant with ID ", lastRestID)
 	ctx := context.Background()
 	products, err := func(ctx context.Context, id int) (*[]models.ParserProduct, error) {
 		ctx, cancel := context.WithTimeout(ctx, time.Duration(m.cfg.ParsingDelaySeconds/10)*time.Second)
 		defer cancel()
-		return m.getProductsFromRestByID(ctx, restaurant.ID)
-	}(ctx, restaurant.ID)
+		return m.getProductsFromRestByID(ctx, supplier.ID)
+	}(ctx, supplier.ID)
 	if err != nil {
 		m.logger.ErrorLog("fail to get product by rest ID", err)
 		return
 	}
 	for i := range *products {
 		wg.Add(1)
-		go m.productCheckUpdateCreate(&(*products)[i], dbSupplier.ID, int(lastRestID))
-		wg.Done()
+		go func(i int) {
+			m.productCheckUpdateCreate(&(*products)[i], lastSupplierID)
+			wg.Done()
+		}(i)
+
 	}
 	wg.Wait()
-	m.deleteNonUpdatedProducts()
+	m.deleteNonUpdatedProducts(lastSupplierID)
 }
 
-func (m MenuParser) productCheckUpdateCreate(parsedProduct *models.ParserProduct, oldRestID int, newRestID int) {
+func (m MenuParser) productCheckUpdateCreate(parsedProduct *models.ParserProduct, supplierID int) {
 
-	product := m.transformProductModel(parsedProduct, newRestID)
-	oldProductID, err := m.productsRepo.SearchBySupIDAndName(oldRestID, parsedProduct.Name)
+	oldProductID, err := m.productsRepo.SearchBySupIDAndName(supplierID, parsedProduct.Name)
+	product := m.transformProductModel(parsedProduct, supplierID)
+
 	if err != nil {
 		m.logger.ErrorLog("fail to search existed product", err)
 		return
 	}
 	if oldProductID != 0 {
-		result, err := m.productsRepo.SoftDelete(oldProductID)
+		product.ID = oldProductID
+		rowsAffected, err := m.productsRepo.Update(product)
 		if err != nil {
 			m.logger.ErrorLog("fail to edit existed product", err)
 			return
 		}
-		rowsAffected, err := result.RowsAffected()
+		m.logger.InfoLog(" rows in product renewed", rowsAffected)
+	} else {
+		lastProdID, err := m.productsRepo.Create(product)
 		if err != nil {
-			m.logger.ErrorLog("fail to get rowsAffected from result", err)
+			m.logger.ErrorLog("fail to create new product", err)
 			return
 		}
-		m.logger.InfoLog(" rows in product renewed", rowsAffected)
+		m.logger.InfoLog("Product with ID, saved to DB", lastProdID)
 	}
-	result, err := m.productsRepo.Create(product)
-	if err != nil {
-		m.logger.ErrorLog("fail to create new product", err)
-		return
-	}
-	lastProdID, err := result.LastInsertId()
-	if err != nil {
-		m.logger.ErrorLog("fail to get lastInsertID from result", err)
-		return
-	}
-	m.logger.InfoLog("Product with ID, saved to DB", lastProdID)
-
 }
 
 func (m MenuParser) deleteNonUpdatedRestaurants() {
-	result, err := m.supplierRepo.SoftDeleteNotUpdated(m.cfg.ParsingDelaySeconds)
+	rowsAffected, err := m.supplierRepo.SoftDeleteNotUpdated(m.cfg.ParsingDelaySeconds)
 	if err != nil {
 		m.logger.ErrorLog("Failed to delete not updated restaurants", err)
 	}
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		m.logger.ErrorLog("failed to get rows affected by soft delete not updated restaurants", err)
-	}
 	if rowsAffected != 0 {
 		m.logger.InfoLog("Rows was deleted from restaurants due to old update date", rowsAffected)
-
+	}
+	if rowsAffected == 0 {
+		m.logger.InfoLog("All suppliers is up to date", rowsAffected)
 	}
 }
 
-func (m MenuParser) deleteNonUpdatedProducts() {
-	result, err := m.productsRepo.SoftDeleteNotUpdated(m.cfg.ParsingDelaySeconds)
+func (m MenuParser) deleteNonUpdatedProducts(supplierID int) {
+	rowsAffected, err := m.productsRepo.SoftDeleteNotUpdated(m.cfg.ParsingDelaySeconds, supplierID)
 	if err != nil {
 		m.logger.ErrorLog("Failed to delete not updated products", err)
 	}
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		m.logger.ErrorLog("failed to get rows affected by soft delete not updated products", err)
-	}
 	if rowsAffected != 0 {
 		m.logger.InfoLog("Rows was deleted in products due to old update date", rowsAffected)
+	}
+	if rowsAffected == 0 {
+		m.logger.InfoLog("All products is up to date in supplier ID", supplierID)
 
 	}
 }
