@@ -13,8 +13,8 @@ func NewTokenRepository(db *sql.DB) *TokenRepository {
 
 type TokenRepositoryI interface {
 	GetByUID(uID string) (int, error)
-	Update(userID int, uID string) (sql.Result, error)
-	NullUID(userID int) (sql.Result, error)
+	Update(userID int, uID string) (int, error)
+	NullUID(userID int) (int, error)
 }
 
 type TokenRepository struct {
@@ -40,18 +40,26 @@ func (t TokenRepository) GetByUID(uID string) (int, error) {
 	return tokensIDs.UserID, nil
 }
 
-func (t TokenRepository) Update(userID int, uID string) (sql.Result, error) {
+func (t TokenRepository) Update(userID int, uID string) (int, error) {
 	result, err := t.db.Exec("UPDATE uids SET user_id=?, uid=?", userID, uID)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }
 
-func (t TokenRepository) NullUID(userID int) (sql.Result, error) {
+func (t TokenRepository) NullUID(userID int) (int, error) {
 	result, err := t.db.Exec("UPDATE uids SET uid=NULL WHERE user_id=?", userID)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }

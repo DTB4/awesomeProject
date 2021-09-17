@@ -3,6 +3,7 @@ package handlers
 import (
 	"awesomeProject/models"
 	"awesomeProject/services"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/DTB4/logger/v2"
@@ -42,17 +43,13 @@ func (p UserHandler) CreateNewUser(w http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotAcceptable)
 		}
-		result, err := p.userService.Create(user)
+		lastUserId, err := p.userService.Create(user)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		lastUserId, err := result.LastInsertId()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		log.Println(lastUserId)
+		req = req.WithContext(context.WithValue(req.Context(), "CurrentUser", lastUserId))
+		p.ShowUserProfile(w, req)
 
 	default:
 		http.Error(w, "Only POST is Allowed", http.StatusMethodNotAllowed)
@@ -94,17 +91,13 @@ func (p UserHandler) EditUserProfile(w http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotAcceptable)
 		}
-		result, err := p.userService.Update(user)
-		if err != nil {
+		rowsAffected, err := p.userService.Update(user)
+		if err != nil || rowsAffected == 0 {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		rowsAffected, err := result.LastInsertId()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		log.Println(rowsAffected)
+		req = req.WithContext(context.WithValue(req.Context(), "CurrentUser", user.ID))
+		p.ShowUserProfile(w, req)
 
 	default:
 		http.Error(w, "Only POST is Allowed", http.StatusMethodNotAllowed)

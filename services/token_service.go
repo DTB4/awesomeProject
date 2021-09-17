@@ -103,8 +103,8 @@ func (t TokenService) GeneratePairOfTokens(userID int) (string, string, error) {
 		return "", "", err
 	}
 
-	result, err := t.tokenRepository.Update(userID, uid)
-	if err != nil || result == nil {
+	rowsAffected, err := t.tokenRepository.Update(userID, uid)
+	if err != nil || rowsAffected == 0 {
 		return "", "", errors.New("fail to update uid")
 	}
 
@@ -120,11 +120,7 @@ func (t TokenService) CheckUID(uID string) (int, error) {
 }
 
 func (t TokenService) Logout(userID int) error {
-	result, err := t.tokenRepository.NullUID(userID)
-	if err != nil {
-		return err
-	}
-	rowsAffected, err := result.RowsAffected()
+	rowsAffected, err := t.tokenRepository.NullUID(userID)
 	if err != nil {
 		return err
 	}

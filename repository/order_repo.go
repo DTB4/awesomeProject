@@ -13,23 +13,27 @@ func NewOrderRepository(db *sql.DB) *OrderRepository {
 }
 
 type OrderRepositoryI interface {
-	Create(order *models.Order) (sql.Result, error)
+	Create(order *models.Order) (int, error)
 	GetByID(orderID int) (*models.Order, error)
 	GetUserOrders(userID int) (*[]models.Order, error)
-	Update(order *models.Order) (sql.Result, error)
-	Delete(id int) (sql.Result, error)
+	Update(order *models.Order) (int, error)
+	Delete(id int) (int, error)
 }
 
 type OrderRepository struct {
 	db *sql.DB
 }
 
-func (or OrderRepository) Create(order *models.Order) (sql.Result, error) {
+func (or OrderRepository) Create(order *models.Order) (int, error) {
 	result, err := or.db.Exec("INSERT INTO orders (id, id_user, status, created, updated) VALUES (?, ?, ?, ?, ?)", order.ID, order.IDUser, "created", time.Now(), time.Now())
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	lastID, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return int(lastID), nil
 }
 
 func (or OrderRepository) GetByID(orderID int) (*models.Order, error) {
@@ -72,18 +76,26 @@ func (or OrderRepository) GetUserOrders(userID int) (*[]models.Order, error) {
 	return &orders, nil
 }
 
-func (or OrderRepository) Update(order *models.Order) (sql.Result, error) {
+func (or OrderRepository) Update(order *models.Order) (int, error) {
 	result, err := or.db.Exec("UPDATE orders SET status=?, updated=? WHERE id=? AND deleted=false", order.Status, time.Now(), order.ID)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }
 
-func (or OrderRepository) Delete(id int) (sql.Result, error) {
+func (or OrderRepository) Delete(id int) (int, error) {
 	result, err := or.db.Exec("DELETE from orders WHERE id=?", id)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }

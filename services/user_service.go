@@ -3,7 +3,7 @@ package services
 import (
 	"awesomeProject/models"
 	"awesomeProject/repository"
-	"database/sql"
+	"errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -14,33 +14,29 @@ func NewUserService(userRepository repository.UserRepositoryI) *UserService {
 }
 
 type UserServiceI interface {
-	Create(user *models.User) (sql.Result, error)
+	Create(user *models.User) (int, error)
 	GetByID(userID int) (*models.User, error)
 	GetByEmail(email string) (*models.User, error)
-	Update(user *models.User) (sql.Result, error)
+	Update(user *models.User) (int, error)
 }
 
 type UserService struct {
 	userRepository repository.UserRepositoryI
 }
 
-func (u UserService) Create(user *models.User) (sql.Result, error) {
+func (u UserService) Create(user *models.User) (int, error) {
 
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(user.PasswordHash), bcrypt.DefaultCost)
 	user.PasswordHash = string(hashedPassword)
-	result, err := u.userRepository.Create(user)
+	lastID, err := u.userRepository.Create(user)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	userID, err := result.LastInsertId()
-	if err != nil {
-		return nil, err
+	if lastID == 0 {
+		return 0, errors.New("user was not created")
 	}
-	result2, err := u.userRepository.CreateUIDRow(int(userID))
-	if err != nil || result2 == nil {
-		return nil, err
-	}
-	return result, nil
+
+	return lastID, nil
 }
 
 func (u UserService) GetByID(userID int) (*models.User, error) {
@@ -59,10 +55,10 @@ func (u UserService) GetByEmail(email string) (*models.User, error) {
 	return user, nil
 }
 
-func (u UserService) Update(user *models.User) (sql.Result, error) {
-	result, err := u.userRepository.Update(user)
+func (u UserService) Update(user *models.User) (int, error) {
+	rowsAffected, err := u.userRepository.Update(user)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	return rowsAffected, nil
 }

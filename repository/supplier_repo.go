@@ -3,7 +3,6 @@ package repository
 import (
 	"awesomeProject/models"
 	"database/sql"
-	"log"
 )
 
 func NewSupplierRepository(db *sql.DB) *SupplierRepository {
@@ -11,28 +10,34 @@ func NewSupplierRepository(db *sql.DB) *SupplierRepository {
 }
 
 type SupplierRepositoryI interface {
-	Create(restaurant *models.Supplier) (sql.Result, error)
+	Create(restaurant *models.Supplier) (int, error)
 	GetByID(id int) (*models.Supplier, error)
 	GetByName(name string) (*models.Supplier, error)
 	GetAll() (*[]models.Supplier, error)
-	Update(restaurant *models.Supplier) (sql.Result, error)
-	Delete(id int) (sql.Result, error)
-	SoftDelete(id int) (sql.Result, error)
-	Truncate() (sql.Result, error)
+	GetAllByType(supplierType string) (*[]models.Supplier, error)
+	GetAllByTime(time string) (*[]models.Supplier, error)
+	Update(restaurant *models.Supplier) (int, error)
+	Delete(id int) (int, error)
+	SoftDelete(id int) (int, error)
+	Truncate() (int, error)
 	SearchByID(id int) (bool, error)
-	SoftDeleteNotUpdated(interval int) (sql.Result, error)
+	SoftDeleteNotUpdated(interval int) (int, error)
 }
 
 type SupplierRepository struct {
 	db *sql.DB
 }
 
-func (s SupplierRepository) Create(supplier *models.Supplier) (sql.Result, error) {
-	result, err := s.db.Exec("INSERT INTO suppliers (id, name, description, created, updated, img_url) VALUES (?, ?, ?, current_timestamp, current_timestamp , ?)", 0, supplier.Name, supplier.Description, supplier.ImgURL)
+func (s SupplierRepository) Create(supplier *models.Supplier) (int, error) {
+	result, err := s.db.Exec("INSERT INTO suppliers (id, name, created, updated, img_url, type, opening, closing) VALUES (?, ?, current_timestamp, current_timestamp , ?, ?, ?, ?)", 0, supplier.Name, supplier.ImgURL, supplier.Type, supplier.Opening, supplier.Closing)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	lastID, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return int(lastID), nil
 }
 
 func (s SupplierRepository) GetByID(id int) (*models.Supplier, error) {
@@ -42,7 +47,7 @@ func (s SupplierRepository) GetByID(id int) (*models.Supplier, error) {
 		return nil, err
 	}
 	for rows.Next() {
-		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Description, &supplier.Created, &supplier.Updated, &supplier.Deleted, &supplier.ImgURL)
+		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Created, &supplier.Updated, &supplier.Deleted, &supplier.ImgURL, &supplier.Type, &supplier.Opening, &supplier.Closing)
 		if err != nil {
 			return nil, err
 		}
@@ -61,7 +66,7 @@ func (s SupplierRepository) GetByName(name string) (*models.Supplier, error) {
 		return nil, err
 	}
 	for rows.Next() {
-		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Description, &supplier.Created, &supplier.Updated, &supplier.Deleted, &supplier.ImgURL)
+		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Created, &supplier.Updated, &supplier.Deleted, &supplier.ImgURL, &supplier.Type, &supplier.Opening, &supplier.Closing)
 		if err != nil {
 			return nil, err
 		}
@@ -78,13 +83,13 @@ func (s SupplierRepository) GetAll() (*[]models.Supplier, error) {
 	rows, err := s.db.Query("SELECT * FROM suppliers WHERE deleted=false")
 
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	supplier := models.Supplier{}
 	for rows.Next() {
-		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Description, &supplier.Created, &supplier.Updated, &supplier.Deleted, &supplier.ImgURL)
+		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Created, &supplier.Updated, &supplier.Deleted, &supplier.ImgURL, &supplier.Type, &supplier.Opening, &supplier.Closing)
 		if err != nil {
-			log.Println(err)
+			return nil, err
 		}
 		suppliers = append(suppliers, supplier)
 	}
@@ -95,44 +100,107 @@ func (s SupplierRepository) GetAll() (*[]models.Supplier, error) {
 	return &suppliers, nil
 }
 
-func (s SupplierRepository) Update(supplier *models.Supplier) (sql.Result, error) {
-	result, err := s.db.Exec("UPDATE suppliers SET name = ?, updated=current_timestamp, deleted=false, img_url=? WHERE id=?", supplier.Name, supplier.ImgURL, supplier.ID)
+func (s SupplierRepository) GetAllByType(supplierType string) (*[]models.Supplier, error) {
+	var suppliers []models.Supplier
+	rows, err := s.db.Query("SELECT * FROM suppliers WHERE deleted=false AND type=?", supplierType)
+
 	if err != nil {
 		return nil, err
 	}
-	return result, nil
+	supplier := models.Supplier{}
+	for rows.Next() {
+		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Created, &supplier.Updated, &supplier.Deleted, &supplier.ImgURL, &supplier.Type, &supplier.Opening, &supplier.Closing)
+		if err != nil {
+			return nil, err
+		}
+		suppliers = append(suppliers, supplier)
+	}
+	err = rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	return &suppliers, nil
+}
+func (s SupplierRepository) GetAllByTime(time string) (*[]models.Supplier, error) {
+	var suppliers []models.Supplier
+	rows, err := s.db.Query("SELECT * FROM suppliers WHERE deleted=false AND opening<=? AND closing>?", time, time)
+
+	if err != nil {
+		return nil, err
+	}
+	supplier := models.Supplier{}
+	for rows.Next() {
+		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Created, &supplier.Updated, &supplier.Deleted, &supplier.ImgURL, &supplier.Type, &supplier.Opening, &supplier.Closing)
+		if err != nil {
+			return nil, err
+		}
+		suppliers = append(suppliers, supplier)
+	}
+	err = rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	return &suppliers, nil
 }
 
-func (s SupplierRepository) Delete(id int) (sql.Result, error) {
+func (s SupplierRepository) Update(supplier *models.Supplier) (int, error) {
+	result, err := s.db.Exec("UPDATE suppliers SET name = ?, updated=current_timestamp, deleted=false, img_url=?, type=?, opening=?, closing=? WHERE id=?", supplier.Name, supplier.ImgURL, supplier.Type, supplier.Opening, supplier.Closing, supplier.ID)
+	if err != nil {
+		return 0, err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
+}
+
+func (s SupplierRepository) Delete(id int) (int, error) {
 	result, err := s.db.Exec("DELETE FROM suppliers WHERE id=?", id)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }
 
-func (s SupplierRepository) SoftDelete(id int) (sql.Result, error) {
+func (s SupplierRepository) SoftDelete(id int) (int, error) {
 	result, err := s.db.Exec("UPDATE suppliers SET deleted=true, updated=current_timestamp WHERE id=?", id)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }
 
-func (s SupplierRepository) Truncate() (sql.Result, error) {
+func (s SupplierRepository) Truncate() (int, error) {
 	result, err := s.db.Exec("DELETE FROM suppliers")
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }
 
-func (s SupplierRepository) SoftDeleteALL() (sql.Result, error) {
+func (s SupplierRepository) SoftDeleteALL() (int, error) {
 	result, err := s.db.Exec("UPDATE suppliers SET deleted=true, updated=current_timestamp WHERE deleted!=true")
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }
 
 func (s SupplierRepository) SearchByID(id int) (bool, error) {
@@ -149,10 +217,14 @@ func (s SupplierRepository) SearchByID(id int) (bool, error) {
 	}
 	return false, nil
 }
-func (s SupplierRepository) SoftDeleteNotUpdated(interval int) (sql.Result, error) {
+func (s SupplierRepository) SoftDeleteNotUpdated(interval int) (int, error) {
 	result, err := s.db.Exec("UPDATE suppliers SET deleted=true, updated=current_timestamp WHERE deleted=false AND (current_timestamp-updated )>=?", interval)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return result, nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }
