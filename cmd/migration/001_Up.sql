@@ -30,7 +30,7 @@ create table if not exists products
             on update cascade on delete cascade
 );
 
-create index suplier_has_products_idx
+create index  suplier_has_products_idx
     on products (id_supplier);
 
 create table if not exists users

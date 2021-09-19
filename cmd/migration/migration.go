@@ -69,7 +69,7 @@ func main() {
 			if command != "" {
 				_, err := tx.Exec(command)
 				if err != nil {
-					myLogger.FatalLog("Error in transaction", err)
+					myLogger.ErrorLog("Error in transaction", err)
 				}
 			}
 		}

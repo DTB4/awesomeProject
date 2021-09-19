@@ -1,11 +1,11 @@
-DROP TABLE order_product;
+DROP TABLE IF EXISTS order_product;
 
-DROP TABLE orders;
+DROP TABLE IF EXISTS orders;
 
-DROP TABLE products;
+DROP TABLE IF EXISTS products;
 
-DROP TABLE suppliers;
+DROP TABLE IF EXISTS suppliers;
 
-DROP TABLE uids;
+DROP TABLE IF EXISTS uids;
 
-DROP TABLE users;
+DROP TABLE IF EXISTS users;
