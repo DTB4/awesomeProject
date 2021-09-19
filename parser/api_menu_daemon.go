@@ -240,7 +240,7 @@ func (m MenuParser) deleteNonUpdatedRestaurants() {
 		m.logger.InfoLog("Rows was deleted from restaurants due to old update date", rowsAffected)
 	}
 	if rowsAffected == 0 {
-		m.logger.InfoLog("All suppliers is up to date", rowsAffected)
+		m.logger.InfoLog("All suppliers is up to date", rowsAffected, " rows was changed")
 	}
 }
 
