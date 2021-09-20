@@ -8,16 +8,13 @@ import (
 	"strings"
 )
 
-func NewConfig(forTesting bool) {
+func NewConfig(path string) {
 
-	fileName := "configs/config.env"
-	if forTesting {
-		fileName = "../configs/test_config.env"
-	}
+	fileName := path
 
 	b, err := os.ReadFile(fileName)
 	if err != nil {
-		log.Fatal("fail to load config", err)
+		log.Fatal("fail to load config ", err)
 	}
 	s := string(b)
 	lines := strings.Split(s, "\n")
@@ -28,7 +25,7 @@ func NewConfig(forTesting bool) {
 		params := strings.Split(lines[i], "=")
 		err = os.Setenv(params[0], params[1])
 		if err != nil {
-			log.Fatal("fail to load config", err)
+			log.Fatal("fail to load config ", err)
 		}
 	}
 }
