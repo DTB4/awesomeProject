@@ -3,6 +3,7 @@ package repository
 import (
 	"awesomeProject/models"
 	"database/sql"
+	"errors"
 )
 
 func NewTokenRepository(db *sql.DB) *TokenRepository {
@@ -22,6 +23,9 @@ type TokenRepository struct {
 }
 
 func (t TokenRepository) GetByUID(uID string) (int, error) {
+	if uID == "" {
+		return 0, errors.New("empty uID string")
+	}
 	tokensIDs := models.TokenIDs{}
 	rows, err := t.db.Query("SELECT user_id FROM uids WHERE uid=?", uID)
 	if err != nil {
@@ -37,11 +41,18 @@ func (t TokenRepository) GetByUID(uID string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	return tokensIDs.UserID, nil
 }
 
 func (t TokenRepository) Update(userID int, uID string) (int, error) {
-	result, err := t.db.Exec("UPDATE uids SET user_id=?, uid=?", userID, uID)
+	if userID == 0 {
+		return 0, errors.New("user ID is 0")
+	}
+	if uID == "" {
+		return 0, errors.New("uID is empty")
+	}
+	result, err := t.db.Exec("UPDATE uids SET uid=? WHERE user_id=?", uID, userID)
 	if err != nil {
 		return 0, err
 	}
@@ -53,6 +64,9 @@ func (t TokenRepository) Update(userID int, uID string) (int, error) {
 }
 
 func (t TokenRepository) NullUID(userID int) (int, error) {
+	if userID == 0 {
+		return 0, errors.New("user ID is 0")
+	}
 	result, err := t.db.Exec("UPDATE uids SET uid=NULL WHERE user_id=?", userID)
 	if err != nil {
 		return 0, err

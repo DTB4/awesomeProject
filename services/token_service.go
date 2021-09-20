@@ -112,6 +112,7 @@ func (t TokenService) GeneratePairOfTokens(userID int) (string, string, error) {
 }
 
 func (t TokenService) CheckUID(uID string) (int, error) {
+
 	userID, err := t.tokenRepository.GetByUID(uID)
 	if err != nil {
 		return 0, err
