@@ -13,6 +13,7 @@ func NewTokenRepository(db *sql.DB) *TokenRepository {
 }
 
 type TokenRepositoryI interface {
+	CreateUIDRow(userID int) (int, error)
 	GetByUID(uID string) (int, error)
 	Update(userID int, uID string) (int, error)
 	NullUID(userID int) (int, error)
@@ -20,6 +21,21 @@ type TokenRepositoryI interface {
 
 type TokenRepository struct {
 	db *sql.DB
+}
+
+func (t TokenRepository) CreateUIDRow(userID int) (int, error) {
+	result, err := t.db.Exec("INSERT INTO uids (user_id) VALUES (?)", userID)
+	if err != nil {
+		return 0, err
+	}
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return 0, err
+	}
+	if rowsAffected == 0 {
+		return 0, err
+	}
+	return int(rowsAffected), nil
 }
 
 func (t TokenRepository) GetByUID(uID string) (int, error) {

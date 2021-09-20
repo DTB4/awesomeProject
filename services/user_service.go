@@ -3,7 +3,6 @@ package services
 import (
 	"awesomeProject/models"
 	"awesomeProject/repository"
-	"errors"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -32,10 +31,6 @@ func (u UserService) Create(user *models.User) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	if lastID == 0 {
-		return 0, errors.New("user was not created")
-	}
-
 	return lastID, nil
 }
 

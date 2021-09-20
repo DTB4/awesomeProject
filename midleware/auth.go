@@ -57,11 +57,6 @@ func (ah AuthHandler) RefreshTokenCheck(next http.HandlerFunc) http.HandlerFunc 
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
-		userFromDB, err := ah.tokenService.CheckUID(claims.UID)
-		if claims.ID != userFromDB {
-			http.Error(w, err.Error(), http.StatusUnauthorized)
-			return
-		}
 		curUser := models.ActiveUserData{
 			ID: claims.ID,
 		}

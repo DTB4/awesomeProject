@@ -48,8 +48,18 @@ func (p UserHandler) CreateNewUser(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		req = req.WithContext(context.WithValue(req.Context(), "CurrentUser", lastUserId))
-		p.ShowUserProfile(w, req)
+		err = p.tokenService.CreateUIDRow(lastUserId)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		response := fmt.Sprint("User with ID ", lastUserId, "was Created")
+		length, err := w.Write([]byte(response))
+		if err != nil || length == 0 {
+			http.Error(w, "Error while writing response", http.StatusInternalServerError)
+			return
+		}
 
 	default:
 		http.Error(w, "Only POST is Allowed", http.StatusMethodNotAllowed)
