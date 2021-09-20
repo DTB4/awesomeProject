@@ -33,7 +33,7 @@ func TestTokenServiceTestSuite(t *testing.T) {
 }
 
 func (suite *TokenServiceTestSuite) SetupSuite() {
-	configs.NewConfig(true)
+	configs.NewConfig("../configs/config.env")
 	suite.cfg = configs.InitConfig()
 	mockTokenRepository := repository.NewMockTokenRepository()
 	suite.TokenService = NewTokenService(&suite.cfg.AuthConfig, mockTokenRepository)

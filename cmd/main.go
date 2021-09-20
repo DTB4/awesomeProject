@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	configs.NewConfig(false)
+	configs.NewConfig("configs/config.env")
 	cfg := configs.InitConfig()
 	server.Start(cfg)
 
