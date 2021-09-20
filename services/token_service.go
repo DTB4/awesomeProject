@@ -32,6 +32,7 @@ type TokenServiceI interface {
 	GeneratePairOfTokens(userID int) (string, string, error)
 	CheckUID(uID string) (int, error)
 	Logout(userID int) error
+	CreateUIDRow(userID int) error
 }
 
 type TokenService struct {
@@ -122,6 +123,17 @@ func (t TokenService) CheckUID(uID string) (int, error) {
 
 func (t TokenService) Logout(userID int) error {
 	rowsAffected, err := t.tokenRepository.NullUID(userID)
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.New("nothing changed in UIDs row")
+	}
+	return nil
+}
+
+func (t TokenService) CreateUIDRow(userID int) error {
+	rowsAffected, err := t.tokenRepository.CreateUIDRow(userID)
 	if err != nil {
 		return err
 	}

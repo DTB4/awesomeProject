@@ -25,6 +25,23 @@ type UserRepository struct {
 	db *sql.DB
 }
 
+func (u UserRepository) Create(user *models.User) (int, error) {
+
+	result, err := u.db.Exec("INSERT INTO users (id, first_name, last_name, email, password_hash, created, updated) VALUES (?, ?, ?, ?, ?, ?, ?)", 0, user.FirstName, user.LastName, user.Email, user.PasswordHash, time.Now(), time.Now())
+	if err != nil {
+		if err != nil {
+			return 0, err
+		}
+		return 0, err
+	}
+	lastID, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(lastID), nil
+}
+
 func (u UserRepository) GetByEmail(email string) (*models.User, error) {
 	user := models.User{}
 	rows, err := u.db.Query("SELECT * FROM users WHERE email=? AND deleted=false", email)
@@ -61,54 +78,6 @@ func (u UserRepository) GetByID(id int) (*models.User, error) {
 		return nil, err
 	}
 	return &user, nil
-}
-
-func (u UserRepository) Create(user *models.User) (int, error) {
-	tx, err := u.db.Begin()
-	if err != nil {
-		return 0, err
-	}
-	result, err := tx.Exec("INSERT INTO users (first_name, last_name, email, password_hash, created) VALUES (?, ?, ?, ?, ?)", user.FirstName, user.LastName, user.Email, user.PasswordHash, time.Now())
-	if err != nil {
-		err = tx.Rollback()
-		if err != nil {
-			return 0, err
-		}
-		return 0, err
-	}
-	result2, err := tx.Exec("INSERT INTO uids (user_id) VALUES (?)", user.ID, nil)
-	if err != nil {
-		err = tx.Rollback()
-		if err != nil {
-			return 0, err
-		}
-		return 0, err
-	}
-	lastID, err := result.LastInsertId()
-	rowsAffected, err := result2.RowsAffected()
-	if err != nil {
-		err = tx.Rollback()
-		if err != nil {
-			return 0, err
-		}
-		return 0, err
-	}
-	if rowsAffected == 0 {
-		err = tx.Rollback()
-		if err != nil {
-			return 0, err
-		}
-		return 0, err
-	}
-	err = tx.Commit()
-	if err != nil {
-		err = tx.Rollback()
-		if err != nil {
-			return 0, err
-		}
-		return 0, err
-	}
-	return int(lastID), nil
 }
 
 func (u UserRepository) Update(user *models.User) (int, error) {
