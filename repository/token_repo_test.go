@@ -129,13 +129,6 @@ func (suite *TokenServiceTestSuite) TestTokenRepoGetByUID() {
 			WantError:  false,
 		},
 		{
-			TestName:     "Empty UID",
-			UIDString:    "",
-			WantUserID:   0,
-			WantError:    true,
-			WantErrorMsg: "empty uID string",
-		},
-		{
 			TestName:   "UID not found",
 			UIDString:  "uid_of_user_5",
 			WantUserID: 0,
@@ -176,22 +169,6 @@ func (suite *TokenServiceTestSuite) TestTokenRepoUpdate() {
 			UIDString:        "uid_of_user_5",
 			WantRowsAffected: 0,
 			WantError:        false,
-		},
-		{
-			TestName:         "UID is empty",
-			UserID:           1,
-			UIDString:        "",
-			WantRowsAffected: 0,
-			WantError:        true,
-			WantErrorMsg:     "uID is empty",
-		},
-		{
-			TestName:         "userID is 0",
-			UserID:           0,
-			UIDString:        "uid_of_user_2",
-			WantRowsAffected: 0,
-			WantError:        true,
-			WantErrorMsg:     "user ID is 0",
 		},
 	}
 
