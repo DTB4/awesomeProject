@@ -4,6 +4,7 @@ import (
 	"awesomeProject/models"
 	"awesomeProject/services"
 	"encoding/json"
+	"fmt"
 	"github.com/DTB4/logger/v2"
 	"net/http"
 )
@@ -47,8 +48,15 @@ func (o OrderHandler) Create(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		orderProductsCreationResult, err := o.orderService.CreateOrderProducts(orderID, &orderProducts)
-		if err != nil || orderProductsCreationResult == 0 {
+		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		response := fmt.Sprint("Successfully created an order ID ", orderID, " with ", orderProductsCreationResult, " products")
+		length, err := w.Write([]byte(response))
+		if err != nil || length == 0 {
+			http.Error(w, "Error while writing a response", http.StatusInternalServerError)
 			return
 		}
 

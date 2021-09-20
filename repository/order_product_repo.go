@@ -28,11 +28,11 @@ func (op OrderProductsRepository) Create(orderProduct *models.OrderProduct) (int
 	if err != nil {
 		return 0, err
 	}
-	lastID, err := result.LastInsertId()
+	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return 0, err
 	}
-	return int(lastID), nil
+	return int(rowsAffected), nil
 }
 
 func (op OrderProductsRepository) GetByOrderID(id int) (*[]models.OrderProduct, error) {
