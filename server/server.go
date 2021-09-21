@@ -12,7 +12,7 @@ import (
 	"net/http"
 )
 
-func Start(cfg *models.Config) {
+func Start(cfg *models.Config) *http.Server {
 	myLogger := logger.NewLogger(cfg.LogsPath)
 
 	db := dbconstructor.NewDB(&cfg.DBConfig, myLogger)
@@ -63,6 +63,10 @@ func Start(cfg *models.Config) {
 	mux.HandleFunc("/productsbytype", productHandler.GetAllByType)
 	mux.HandleFunc("/productsbysupplier", productHandler.GetAllBySupplierID)
 
-	myLogger.ErrorLog("Fail to start server", http.ListenAndServe(cfg.ServerPort, mux))
+	srv := http.Server{
+		Addr:    cfg.ServerPort,
+		Handler: mux,
+	}
 
+	return &srv
 }
