@@ -75,7 +75,10 @@ func (h SupplierHandler) GetAllSuppliers(w http.ResponseWriter, req *http.Reques
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		w.Header().Add("Content-Type", "application/json")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 		w.WriteHeader(http.StatusOK)
+
 		length, err := w.Write(jSuppliers)
 		if err != nil {
 			log.Fatal(err)
