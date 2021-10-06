@@ -25,8 +25,9 @@ type ActiveUserData struct {
 }
 
 type UserResponse struct {
-	ID        int
-	Email     string
-	FirstName string
-	LastName  string
+	ID        int    `json:"id"`
+	Email     string `json:"email"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Created   bool   `json:"created"`
 }

@@ -36,40 +36,43 @@ type UserHandler struct {
 }
 
 func (p UserHandler) CreateNewUser(w http.ResponseWriter, req *http.Request) {
-	switch req.Method {
-	case "POST":
-		user := new(models.User)
-		err := json.NewDecoder(req.Body).Decode(&user)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusNotAcceptable)
-		}
-		lastUserId, err := p.userService.Create(user)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		err = p.tokenService.CreateUIDRow(lastUserId)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		response := fmt.Sprint("User with ID ", lastUserId, "was Created")
-		length, err := w.Write([]byte(response))
-		if err != nil || length == 0 {
-			http.Error(w, "Error while writing response", http.StatusInternalServerError)
-			return
-		}
 
-	default:
-		http.Error(w, "Only POST is Allowed", http.StatusMethodNotAllowed)
+	w.Header().Add("Content-Type", "application/json")
+	user := new(models.User)
+	err := json.NewDecoder(req.Body).Decode(&user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotAcceptable)
+	}
+	lastUserId, err := p.userService.Create(user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = p.tokenService.CreateUIDRow(lastUserId)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	userResponse := models.UserResponse{
+		ID:        lastUserId,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+		Created:   true,
+	}
+	w.WriteHeader(http.StatusOK)
+	response, _ := json.Marshal(userResponse)
+	length, err := w.Write(response)
+	if err != nil || length == 0 {
+		http.Error(w, "Error while writing response", http.StatusInternalServerError)
+		return
 	}
 }
 
 func (p UserHandler) ShowUserProfile(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "GET":
-
+		w.Header().Add("Content-Type", "application/json")
 		userID := req.Context().Value("CurrentUser").(models.ActiveUserData).ID
 
 		user, err := p.userService.GetByID(userID)

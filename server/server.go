@@ -30,6 +30,7 @@ func Start(cfg *models.Config) *http.Server {
 	supplierService := services.NewSupplierService(suppliersRepository)
 	productService := services.NewProductService(productRepository)
 
+	corsHandler := midleware.NewCORSHandler(myLogger)
 	authHandler := midleware.NewAuthHandler(tokenService, myLogger)
 	orderHandler := handlers.NewOrderHandler(orderService, myLogger)
 	userHandler := handlers.NewUserHandler(userService, tokenService, myLogger)
@@ -41,12 +42,12 @@ func Start(cfg *models.Config) *http.Server {
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/registration", userHandler.CreateNewUser)
-	mux.HandleFunc("/profile", authHandler.AccessTokenCheck(userHandler.ShowUserProfile))
+	mux.HandleFunc("/registration", corsHandler.AddCORSHeaders(userHandler.CreateNewUser))
+	mux.HandleFunc("/profile", corsHandler.AddCORSHeaders(authHandler.AccessTokenCheck(userHandler.ShowUserProfile)))
 	mux.HandleFunc("/editprofile", authHandler.AccessTokenCheck(userHandler.EditUserProfile))
-	mux.HandleFunc("/refresh", authHandler.RefreshTokenCheck(userHandler.Refresh))
+	mux.HandleFunc("/refresh", corsHandler.AddCORSHeaders(authHandler.RefreshTokenCheck(userHandler.Refresh)))
 	mux.HandleFunc("/logout", authHandler.AccessTokenCheck(userHandler.Logout))
-	mux.HandleFunc("/login", userHandler.Login)
+	mux.HandleFunc("/login", corsHandler.AddCORSHeaders(userHandler.Login))
 
 	mux.HandleFunc("/createorder", authHandler.AccessTokenCheck(orderHandler.Create))
 	mux.HandleFunc("/getorder", authHandler.AccessTokenCheck(orderHandler.GetByID))
