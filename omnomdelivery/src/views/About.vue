@@ -8,14 +8,17 @@
     <registration></registration>
     <login></login>
     <user_profile></user_profile>
+
     <suppliers>Suppliers section</suppliers>
     <products>Products section</products>
   </div>
 
 </template>
 <script>
+
 export default {
   name: "About",
+  components: {},
   data() {
     return {
       name: "About",

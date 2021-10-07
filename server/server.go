@@ -46,7 +46,7 @@ func Start(cfg *models.Config) *http.Server {
 	mux.HandleFunc("/profile", corsHandler.AddCORSHeaders(authHandler.AccessTokenCheck(userHandler.ShowUserProfile)))
 	mux.HandleFunc("/editprofile", authHandler.AccessTokenCheck(userHandler.EditUserProfile))
 	mux.HandleFunc("/refresh", corsHandler.AddCORSHeaders(authHandler.RefreshTokenCheck(userHandler.Refresh)))
-	mux.HandleFunc("/logout", authHandler.AccessTokenCheck(userHandler.Logout))
+	mux.HandleFunc("/logout", corsHandler.AddCORSHeaders(authHandler.AccessTokenCheck(userHandler.Logout)))
 	mux.HandleFunc("/login", corsHandler.AddCORSHeaders(userHandler.Login))
 
 	mux.HandleFunc("/createorder", authHandler.AccessTokenCheck(orderHandler.Create))

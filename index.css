@@ -91,6 +91,7 @@ body {
     padding: 0;
     align-items: center;
 }
+
 .supplier {
     background-color: beige;
     border: 2px solid black;
@@ -98,25 +99,33 @@ body {
     padding: 15px 15px;
 }
 
-.products-lists-section{
+.products-lists-section {
     display: flex;
     flex-wrap: wrap;
     box-sizing: border-box;
     position: relative;
 }
 
-@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-.products-lists-section>*{
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.products-lists-section > * {
     box-sizing: border-box;
     flex: 0 1 15em;
-    opacity:0;
-    animation:fadeIn ease-in 1;
-    animation-fill-mode:forwards;
-    animation-duration:1s;
+    opacity: 0;
+    animation: fadeIn ease-in 1;
+    animation-fill-mode: forwards;
+    animation-duration: 1s;
 }
 
 
-.product{
+.product {
     background-color: beige;
     border: 2px solid black;
     margin: 10px 10px;

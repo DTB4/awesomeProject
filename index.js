@@ -6,14 +6,14 @@ document.querySelector('.header_logo').src = headerLogoPath
 document.querySelector('.footer_logo').src = footerLogoPath
 
 
-const GetAllProducts = async() => {
+const GetAllProducts = async () => {
 
     let resp = await fetch('http://localhost:8081/products', {
         method: 'GET',
     });
     let productsMassive = await resp.json()
 
-    productsMassive.forEach(function (product){
+    productsMassive.forEach(function (product) {
         document.getElementById("products_box").insertAdjacentHTML(`beforeend`,
             `
                  <div class="product">
@@ -30,9 +30,8 @@ const GetAllProducts = async() => {
     console.log(productsMassive)
 
 
-
 }
-setTimeout(function(){
+setTimeout(function () {
     GetAllProducts()
-},1000);
+}, 1000);
 

@@ -33,7 +33,7 @@ export default {
           'Authorization': 'Bearer ' + this.data_access_token,
         },
       });
-      if (response.status == 200) {
+      if (response.ok) {
         //TODO: make redirect to Login
         let parsedResponce = await response.json();
         console.log("responce from server", parsedResponce)

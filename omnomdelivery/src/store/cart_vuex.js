@@ -10,10 +10,14 @@ const mutations = {
         state.products = state.products.filter(i => i.id !== id)
     },
     increaseProduct(state, id) {
-        state.product[id][1]++
+        state.products[id][1]++
     },
-    decreaseProducts(state, id) {
-        state.product[id][1]--
+    decreaseProduct(state, id) {
+        if (state.products[id][1]>1){
+        state.products[id][1]--
+        }else{
+            state.products[id][1]=1
+        }
     }
 }
 
@@ -21,21 +25,22 @@ const mutations = {
 const actions = {
     addProduct(context, product) {
         context.commit('addProduct', product)
-        context.commit('increaseProduct', product.id)
     },
     removeProduct(context, id) {
         context.commit('removeProduct', id)
+    },
+    increaseProduct(context, id) {
+        context.commit('increaseProduct', id)
+    },
+    decreaseProduct(context, id) {
         context.commit('decreaseProduct', id)
     }
 }
 
 const getters = {
-    gotProducts: (state) => {
+    getProducts: (state) => {
         return state.products
     },
-    gotProductsQty: (state) => {
-        return state.quantity
-    }
 }
 
 export default ({

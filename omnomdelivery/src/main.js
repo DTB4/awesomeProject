@@ -10,6 +10,7 @@ import Supplier from "@/components/Supplier";
 import Registration from "@/components/Registration";
 import Login from "@/components/Login";
 import UserProfile from "@/components/UserProfile"
+import Logout from "@/components/Logout";
 
 Vue.config.productionTip = false;
 Vue.component("card", Card).default
@@ -20,6 +21,8 @@ Vue.component('supplier', Supplier).default
 Vue.component('registration', Registration).default
 Vue.component('login', Login).default
 Vue.component('user_profile', UserProfile).default
+Vue.component('logout', Logout).default
+
 
 new Vue({
     router,

@@ -4,6 +4,7 @@
     <img alt="Vue logo" src="../assets/logo.png"/>
     <img alt="OmNom Logo" class="omnomlogo" src="../assets/big_logo1.png"/>
     <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <cart></cart>
   </div>
 </template>
 
@@ -11,10 +12,12 @@
 // @ is an alias to /src
 import HelloWorld from "@/components/HelloWorld.vue";
 import Example from "@/components/Example";
+import Cart from "@/components/Cart";
 
 export default {
   name: "Home",
   components: {
+    Cart,
     Example,
     HelloWorld,
   },

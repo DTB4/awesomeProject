@@ -30,10 +30,13 @@
         value="Login"
         @click="loginUser()"
     >
+    <logout></logout>
   </div>
 </template>
 
 <script>
+import {mapActions} from "vuex";
+
 export default {
   name: "Login",
   data() {
@@ -43,6 +46,7 @@ export default {
     }
   },
   methods: {
+    ...mapActions('tokens', ['addTokens']),
     async loginUser() {
       const response = await fetch('http://localhost:8081/login', {
         method: 'POST',
@@ -56,11 +60,10 @@ export default {
       if (response.status == 200) {
         //TODO: make redirect to main page
         let parsedResponce = await response.json();
-        localStorage.setItem('access_token', parsedResponce.access_token)
-        localStorage.setItem('refresh_token', parsedResponce.refresh_token)
+        this.addTokens([parsedResponce.access_token, parsedResponce.refresh_token])
         console.log("responce from server", parsedResponce)
-        this.first_name = ''
-        this.second_name = ''
+        this.email = ''
+        this.password = ''
         alert("OK")
 
       } else {
