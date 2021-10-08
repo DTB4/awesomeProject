@@ -30,7 +30,7 @@ func Start(cfg *models.Config) *http.Server {
 	supplierService := services.NewSupplierService(suppliersRepository)
 	productService := services.NewProductService(productRepository)
 
-	corsHandler := midleware.NewCORSHandler(myLogger)
+	corsHandler := midleware.NewCORSHandler(myLogger, cfg)
 	authHandler := midleware.NewAuthHandler(tokenService, myLogger)
 	orderHandler := handlers.NewOrderHandler(orderService, myLogger)
 	userHandler := handlers.NewUserHandler(userService, tokenService, myLogger)

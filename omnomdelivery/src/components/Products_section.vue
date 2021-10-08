@@ -1,37 +1,37 @@
 <template>
-  <div class="products_section" id='products_section_id'>
-    <product v-for="(product, id) in products_array" :key="id" :product_ent="product"></product>
+  <div class="products_section" id="products_section_id">
+    <product
+      v-for="(product, id) in products_array"
+      :key="id"
+      :product_ent="product"
+    ></product>
   </div>
 </template>
 
 <script>
-
 export default {
   name: "Products_section",
   data() {
     return {
-      products_array: []
-    }
+      products_array: [],
+    };
   },
   methods: {
     async getAllProducts() {
-      let resp = await fetch('http://localhost:8081/products', {
-        method: 'GET',
+      let resp = await fetch("http://localhost:8081/products", {
+        method: "GET",
       });
-      let productsMassive = await resp.json()
-      return productsMassive
-    }
-
+      let productsMassive = await resp.json();
+      return productsMassive;
+    },
   },
-  created() {
-
-  },
+  created() {},
   async mounted() {
-    document.getElementById('products_section_id').innerText = 'Loading'
-    this.products_array = await this.getAllProducts()
-    document.getElementById('products_section_id').innerText = ''
-  }
-}
+    document.getElementById("products_section_id").innerText = "Loading";
+    this.products_array = await this.getAllProducts();
+    document.getElementById("products_section_id").innerText = "";
+  },
+};
 </script>
 
 <style scoped>
@@ -45,7 +45,6 @@ export default {
   box-sizing: border-box;
   position: relative;
   justify-content: space-evenly;
-
 }
 
 @keyframes fadeIn {
@@ -64,6 +63,5 @@ export default {
   animation: fadeIn ease-in 1;
   animation-fill-mode: forwards;
   animation-duration: 1s;
-
 }
 </style>

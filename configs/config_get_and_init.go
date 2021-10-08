@@ -64,6 +64,7 @@ func InitConfig() *models.Config {
 			FormatString:        os.Getenv("FORMAT_STRING_FOR_API_URL"),
 			ParsingDelaySeconds: parsingDelaySeconds,
 		},
+		CorsHandlerConfig: os.Getenv("CORS_ORIGIN_ADDRESS_&_PORT"),
 	}
 	return &config
 }

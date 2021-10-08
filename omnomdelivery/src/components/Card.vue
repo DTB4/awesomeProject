@@ -3,12 +3,13 @@
     <div>{{ title }}</div>
     <div>{{ value }}</div>
     <div>{{ data }}</div>
-    <div :title="'Jump to:'+ $router.getRoutes()[0].name"
-         @click="$router.push({name: $router.getRoutes()[0].name})"
-         :class="{clickable: clickable}"
-         :style="{'font-size':'25px'}"
-
-    >Go home
+    <div
+      :title="'Jump to:' + $router.getRoutes()[0].name"
+      @click="$router.push({ name: $router.getRoutes()[0].name })"
+      :class="{ clickable: clickable }"
+      :style="{ 'font-size': '25px' }"
+    >
+      Go home
     </div>
     <div @click="increment" class="clickable">INC</div>
   </div>
@@ -24,26 +25,25 @@ export default {
     },
     title: {
       type: String,
-      require: true
+      require: true,
     },
     value: {
       type: Number,
       default: 1,
       validator(value) {
-        return value > 0
-      }
-
+        return value > 0;
+      },
     },
     data: {
-      type: Object
-    }
+      type: Object,
+    },
   },
   methods: {
     increment() {
-      this.$emit('increment', this.value + 1)
-    }
-  }
-}
+      this.$emit("increment", this.value + 1);
+    },
+  },
+};
 </script>
 
 <style scoped>

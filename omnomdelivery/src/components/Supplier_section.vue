@@ -1,6 +1,10 @@
 <template>
-  <div class="supplier_section" id='supplier_section_id'>
-    <supplier v-for="(supplier, id) in suppliers_array" :key="id" :supplier_ent="supplier"></supplier>
+  <div class="supplier_section" id="supplier_section_id">
+    <supplier
+      v-for="(supplier, id) in suppliers_array"
+      :key="id"
+      :supplier_ent="supplier"
+    ></supplier>
   </div>
 </template>
 
@@ -9,28 +13,25 @@ export default {
   name: "Supplier_section",
   data() {
     return {
-      suppliers_array: []
-    }
+      suppliers_array: [],
+    };
   },
   methods: {
     async getAllSuppliers() {
-      let resp = await fetch('http://localhost:8081/suppliers', {
-        method: 'GET',
+      let resp = await fetch("http://localhost:8081/suppliers", {
+        method: "GET",
       });
-      let suppliersMassive = await resp.json()
-      return suppliersMassive
-    }
-
+      let suppliersMassive = await resp.json();
+      return suppliersMassive;
+    },
   },
-  created() {
-
-  },
+  created() {},
   async mounted() {
-    document.getElementById('supplier_section_id').innerText = 'Loading'
-    this.suppliers_array = await this.getAllSuppliers()
-    document.getElementById('supplier_section_id').innerText = ''
-  }
-}
+    document.getElementById("supplier_section_id").innerText = "Loading";
+    this.suppliers_array = await this.getAllSuppliers();
+    document.getElementById("supplier_section_id").innerText = "";
+  },
+};
 </script>
 
 <style scoped>
@@ -44,7 +45,6 @@ export default {
   box-sizing: border-box;
   position: relative;
   justify-content: space-evenly;
-
 }
 
 @keyframes fadeIn {
@@ -63,6 +63,5 @@ export default {
   animation: fadeIn ease-in 1;
   animation-fill-mode: forwards;
   animation-duration: 1s;
-
 }
 </style>
