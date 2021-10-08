@@ -74,6 +74,8 @@ func (p ProductHandler) GetAll(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		w.Header().Add("Content-Type", "application/json")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 		w.WriteHeader(http.StatusOK)
 		length, err := w.Write(jProducts)
 		if err != nil {
@@ -118,8 +120,9 @@ func (p ProductHandler) GetAllByType(w http.ResponseWriter, req *http.Request) {
 
 func (p ProductHandler) GetAllBySupplierID(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
-	case "GET":
-
+	case "POST":
+		w.Header().Add("Content-Type", "application/json")
+		w.Header().Add("Access-Control-Allow-Origin", "*")
 		reqProduct := new(models.ProductSupplierIDRequest)
 		err := json.NewDecoder(req.Body).Decode(&reqProduct)
 		if err != nil {
@@ -145,6 +148,7 @@ func (p ProductHandler) GetAllBySupplierID(w http.ResponseWriter, req *http.Requ
 			return
 
 		}
+
 		w.WriteHeader(http.StatusOK)
 		length, err := w.Write(jProducts)
 		if err != nil {
@@ -153,6 +157,6 @@ func (p ProductHandler) GetAllBySupplierID(w http.ResponseWriter, req *http.Requ
 		fmt.Println(length)
 
 	default:
-		http.Error(w, "Only GET is Allowed", http.StatusMethodNotAllowed)
+		http.Error(w, "Only POST is Allowed", http.StatusMethodNotAllowed)
 	}
 }
