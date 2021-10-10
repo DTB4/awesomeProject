@@ -2,10 +2,10 @@
   <div class="supplier">
     <a class="supplier_link" rel="">
       <img
-        class="supplier_img"
-        width="100%"
-        :src="supplier_ent.img_url"
-        alt=""
+          class="supplier_img"
+          width="100%"
+          :src="supplier_ent.img_url"
+          alt=""
       />
       <h2 class="supplier_name">{{ supplier_ent.name }}</h2>
     </a>

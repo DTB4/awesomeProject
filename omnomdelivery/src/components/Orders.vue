@@ -1,28 +1,29 @@
 <template>
-  <div v-if="show" class="logout" id="logout_id" @click="logout">Logout</div>
+  <div class="orders_container">
+    <Order v-for="(order, id) in orders"
+           :key="id"
+           :order="order"
+    ></Order>
+  </div>
 </template>
 
 <script>
-import {mapActions} from "vuex";
 import refresh_tokens from "../mixins/refresh_tokens";
+import Order from "./Order";
 
 export default {
+  components: {Order},
   mixins: [refresh_tokens],
-  name: "Logout",
+  name: "Orders",
   data() {
     return {
-      isLogout: false,
-      show: {
-        type: Boolean,
-        default: false,
-      },
-    };
+      orders: [],
+    }
   },
   methods: {
-    ...mapActions("tokens", ["removeTokens"]),
-    async logout() {
-      const response = await fetch("http://localhost:8081/logout", {
-        method: "POST",
+    async getOrders() {
+      const response = await fetch("http://localhost:8081/getmyorders", {
+        method: "GET",
         mode: "cors",
         headers: {
           Accept: "*/*",
@@ -30,23 +31,27 @@ export default {
         },
       });
       if (response.ok) {
-        this.removeTokens();
-        this.$emit("userLogout");
+        this.orders = await response.json()
 
       } else if (response.status === 401) {
         //TODO: try to catch 401 error without "error" in console
         let ok = await this.refreshTokens();
         if (ok) {
-          await this.logout();
+          await this.getOrders();
         }
       } else {
         console.log("not ok response", response);
-        this.removeTokens();
-        this.$emit("userLogout");
       }
     },
   },
-};
+  created() {
+    this.getOrders()
+  }
+}
 </script>
 
-<style scoped></style>
+<style scoped>
+.orders_container {
+
+}
+</style>

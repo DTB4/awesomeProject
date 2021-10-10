@@ -4,7 +4,6 @@ import (
 	"awesomeProject/models"
 	"awesomeProject/services"
 	"encoding/json"
-	"fmt"
 	"github.com/DTB4/logger/v2"
 	"net/http"
 )
@@ -53,8 +52,13 @@ func (o OrderHandler) Create(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		response := fmt.Sprint("Successfully created an order ID ", orderID, " with ", orderProductsCreationResult, " products")
-		length, err := w.Write([]byte(response))
+		orderResponse := models.OrderCreationResponse{
+			OrderID:    orderID,
+			ProductQty: orderProductsCreationResult,
+		}
+		response, _ := json.Marshal(orderResponse)
+
+		length, err := w.Write(response)
 		if err != nil || length == 0 {
 			http.Error(w, "Error while writing a response", http.StatusInternalServerError)
 			return
@@ -67,7 +71,7 @@ func (o OrderHandler) Create(w http.ResponseWriter, req *http.Request) {
 
 func (o OrderHandler) GetByID(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
-	case "GET":
+	case "POST":
 		requesterID := new(models.RequestOrderID)
 		err := json.NewDecoder(req.Body).Decode(&requesterID)
 		if err != nil {
@@ -90,7 +94,7 @@ func (o OrderHandler) GetByID(w http.ResponseWriter, req *http.Request) {
 		}
 
 	default:
-		http.Error(w, "Only GET is Allowed", http.StatusMethodNotAllowed)
+		http.Error(w, "Only POST is Allowed", http.StatusMethodNotAllowed)
 	}
 }
 

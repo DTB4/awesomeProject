@@ -2,48 +2,48 @@
   <div class="registration_container" id="registration_container_id">
     <h2>Registration</h2>
     <input
-      @submit.prevent
-      id="registration_input_email"
-      class="input"
-      type="email"
-      @input="(email = $event.target.value), checkEmail()"
-      v-bind:value="email"
-      placeholder="email"
+        @submit.prevent
+        id="registration_input_email"
+        class="input"
+        type="email"
+        @input="(email = $event.target.value), checkEmail()"
+        v-bind:value="email"
+        placeholder="email"
     />
     <input
-      @submit.prevent
-      id="registration_input_password"
-      class="input"
-      type="password"
-      @input="(password = $event.target.value), checkPassword()"
-      v-bind:value="password"
-      placeholder="password"
+        @submit.prevent
+        id="registration_input_password"
+        class="input"
+        type="password"
+        @input="(password = $event.target.value), checkPassword()"
+        v-bind:value="password"
+        placeholder="password"
     />
     <input
-      @submit.prevent
-      id="registration_input_first_name"
-      class="input"
-      type="text"
-      @input="first_name = $event.target.value"
-      v-bind:value="first_name"
-      placeholder="first_name"
+        @submit.prevent
+        id="registration_input_first_name"
+        class="input"
+        type="text"
+        @input="first_name = $event.target.value"
+        v-bind:value="first_name"
+        placeholder="first_name"
     />
     <input
-      @submit.prevent
-      id="registration_input_second_name"
-      class="input"
-      type="text"
-      @input="second_name = $event.target.value"
-      v-bind:value="second_name"
-      placeholder="second_name"
+        @submit.prevent
+        id="registration_input_second_name"
+        class="input"
+        type="text"
+        @input="second_name = $event.target.value"
+        v-bind:value="second_name"
+        placeholder="second_name"
     />
     <input
-      @submit.prevent
-      id="registration_submit"
-      class="button"
-      type="button"
-      value="Register"
-      @click="registerUser()"
+        @submit.prevent
+        id="registration_submit"
+        class="button"
+        type="button"
+        value="Register"
+        @click="registerUser()"
     />
     <div class="message_container" id="registration_message_container">
       <h2 id="email_message" v-text="password_message"></h2>
@@ -74,8 +74,8 @@ export default {
         case this.email === "":
           this.email_message = "Email is empty";
           return;
-        // case (!this.email.contains('@')):this.email_message="Input is not an email";
-        //   return;
+          // case (!this.email.contains('@')):this.email_message="Input is not an email";
+          //   return;
         case this.email.length < 5:
           this.email_message = "Email is too short";
           return;

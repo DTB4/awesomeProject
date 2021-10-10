@@ -1,9 +1,9 @@
 <template>
   <div class="supplier_section" id="supplier_section_id">
     <supplier
-      v-for="(supplier, id) in suppliers_array"
-      :key="id"
-      :supplier_ent="supplier"
+        v-for="(supplier, id) in suppliers_array"
+        :key="id"
+        :supplier_ent="supplier"
     ></supplier>
   </div>
 </template>
@@ -25,7 +25,8 @@ export default {
       return suppliersMassive;
     },
   },
-  created() {},
+  created() {
+  },
   async mounted() {
     document.getElementById("supplier_section_id").innerText = "Loading";
     this.suppliers_array = await this.getAllSuppliers();

@@ -1,9 +1,9 @@
 <template>
   <div class="products_section" id="products_section_id">
     <product
-      v-for="(product, id) in products_array"
-      :key="id"
-      :product_ent="product"
+        v-for="(product, id) in products_array"
+        :key="id"
+        :product_ent="product"
     ></product>
   </div>
 </template>
@@ -25,10 +25,13 @@ export default {
       return productsMassive;
     },
   },
-  created() {},
+  created() {
+
+  },
   async mounted() {
     document.getElementById("products_section_id").innerText = "Loading";
     this.products_array = await this.getAllProducts();
+    localStorage.setItem("Products", JSON.stringify(this.products_array))
     document.getElementById("products_section_id").innerText = "";
   },
 };

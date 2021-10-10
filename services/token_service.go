@@ -28,7 +28,7 @@ type TokenServiceI interface {
 	ValidateRefreshToken(tokenString string) (*JwtCustomClaims, error)
 	validateToken(tokenString, secret string) (*JwtCustomClaims, error)
 	ParseFromBearerString(input string) string
-	generateToken(userID, lifeTimeMinutes int, secret string) (string, string, error)
+	generateToken(userID, lifeTimeMinutes int, secret string, uid string) (string, string, error)
 	GeneratePairOfTokens(userID int) (string, string, error)
 	CheckUID(uID string) (int, error)
 	Logout(userID int) error
@@ -81,8 +81,12 @@ func (t TokenService) ParseFromBearerString(input string) string {
 	return token
 }
 
-func (t TokenService) generateToken(userID, lifeTimeMinutes int, secret string) (string, string, error) {
+func (t TokenService) generateToken(userID, lifeTimeMinutes int, secret string, uid string) (string, string, error) {
+
 	uID := uuid.New().String()
+	if uid != "" {
+		uID = uid
+	}
 	claims := &JwtCustomClaims{
 		userID,
 		jwt.StandardClaims{
@@ -95,11 +99,11 @@ func (t TokenService) generateToken(userID, lifeTimeMinutes int, secret string) 
 }
 
 func (t TokenService) GeneratePairOfTokens(userID int) (string, string, error) {
-	accessToken, uid, err := t.generateToken(userID, t.cfg.AccessLifeTimeMinutes, t.cfg.AccessSecretString)
+	accessToken, uid, err := t.generateToken(userID, t.cfg.AccessLifeTimeMinutes, t.cfg.AccessSecretString, "")
 	if err != nil {
 		return "", "", err
 	}
-	refreshToken, _, err := t.generateToken(userID, t.cfg.RefreshLifeTimeMinutes, t.cfg.RefreshSecretString)
+	refreshToken, _, err := t.generateToken(userID, t.cfg.RefreshLifeTimeMinutes, t.cfg.RefreshSecretString, uid)
 	if err != nil {
 		return "", "", err
 	}

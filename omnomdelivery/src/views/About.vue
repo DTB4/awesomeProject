@@ -5,11 +5,11 @@
     <div>{{ step }}</div>
     <div ref="test">TEST</div>
     <card
-      :title="name"
-      :value="value"
-      :data="data"
-      :clickable="clickable"
-      @increment="handler"
+        :title="name"
+        :value="value"
+        :data="data"
+        :clickable="clickable"
+        @increment="handler"
     ></card>
 
   </div>
@@ -21,7 +21,7 @@ export default {
   data() {
     return {
       name: "About",
-      data: { a: 1, b: 2 },
+      data: {a: 1, b: 2},
       clickable: false,
       value: 1,
       step: 0,
@@ -35,7 +35,7 @@ export default {
   },
   computed: {
     result() {
-      return { a: this.data.a + this.value, b: this.data.b + this.value };
+      return {a: this.data.a + this.value, b: this.data.b + this.value};
     },
   },
   watch: {

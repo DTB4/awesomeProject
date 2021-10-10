@@ -3,40 +3,40 @@
     <h2>Login</h2>
     <form>
       <input
-        @submit.prevent
-        id="login_input_email"
-        class="input"
-        type="email"
-        @input="email = $event.target.value"
-        v-bind:value="email"
-        placeholder="email"
-        autocomplete="email"
+          @submit.prevent
+          id="login_input_email"
+          class="input"
+          type="email"
+          @input="email = $event.target.value"
+          v-bind:value="email"
+          placeholder="email"
+          autocomplete="email"
       />
       <input
-        @submit.prevent
-        id="login_input_password"
-        class="input"
-        type="password"
-        @input="password = $event.target.value"
-        v-bind:value="password"
-        placeholder="password"
-        autocomplete="current-password"
+          @submit.prevent
+          id="login_input_password"
+          class="input"
+          type="password"
+          @input="password = $event.target.value"
+          v-bind:value="password"
+          placeholder="password"
+          autocomplete="current-password"
       />
     </form>
 
     <input
-      @submit.prevent
-      id="login_submit"
-      class="button"
-      type="button"
-      value="Login"
-      @click="loginUser()"
+        @submit.prevent
+        id="login_submit"
+        class="button"
+        type="button"
+        value="Login"
+        @click="loginUser()"
     />
   </div>
 </template>
 
 <script>
-import { mapActions } from "vuex";
+import {mapActions} from "vuex";
 
 export default {
   name: "Login",
@@ -60,22 +60,23 @@ export default {
         headers: {
           Accept: "*/*",
         },
-        body: JSON.stringify({ email: this.email, password: this.password }),
+        body: JSON.stringify({email: this.email, password: this.password}),
       });
       if (response.status === 200) {
         //TODO: make redirect to main page
-        let parsedResponce = await response.json();
+        let parsedResponse = await response.json();
         this.addTokens([
-          parsedResponce.access_token,
-          parsedResponce.refresh_token,
+          parsedResponse.access_token,
+          parsedResponse.refresh_token,
         ]);
         this.$emit("userLogin");
-        console.log("response from server", parsedResponce);
+        this.$emit("hideDialogWindow")
+        console.log("response from server", parsedResponse);
         this.email = "";
         this.password = "";
 
       } else {
-        //TODO: make message for error in responce
+        //TODO: make message for error in response
         console.log("not OK response", response);
       }
     },

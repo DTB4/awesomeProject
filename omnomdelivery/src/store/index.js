@@ -6,10 +6,10 @@ import tokensStore from "@/store/tokens_vuex";
 Vue.use(Vuex);
 
 const modules = {
-  cart: cartStore,
-  tokens: tokensStore,
+    cart: cartStore,
+    tokens: tokensStore,
 };
 
 export default new Vuex.Store({
-  modules,
+    modules,
 });

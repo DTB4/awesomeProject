@@ -1,29 +1,7 @@
 <template>
-  <div v-on:userLogout="stateToLogout" v-on:userLogin="stateToLogin"  id="app">
-    <div  class="main_header">
-      <div  v-if="!isLogin"   @click="showLoginWindow()">Login</div>
-      <div @click="showCartWindow()">Cart</div>
-      <div v-if="!isLogin" @click="showRegistrationWindow()">Register</div>
-      <logout v-if="isLogin" ></logout>
-    </div>
-    <dialog_window
-      :show="loginWindowVisible"
-      @hideLoginWindow="hideLoginWindow()"
-    >
-      <login></login>
-    </dialog_window>
-    <dialog_window
-      :show="registrationWindowVisible"
-      @hideLoginWindow="hideRegistrationWindow()"
-    >
-      <registration></registration>
-    </dialog_window>
-    <dialog_window
-      :show="cartWindowVisible"
-      @hideLoginWindow="hideCartWindow()"
-    >
-      <cart></cart>
-    </dialog_window>
+  <div id="app">
+    <omnom_header :is-login="isLogin" @userLogin="stateToLogin" @userLogout="stateToLogout"></omnom_header>
+
     <suppliers>Suppliers section</suppliers>
     <products>Products section</products>
 
@@ -33,42 +11,44 @@
 
 <script>
 
+import {mapActions} from "vuex";
+
 export default {
   name: "index",
+  components: {},
   data() {
     return {
       isLogin: false,
-      loginWindowVisible: false,
-      registrationWindowVisible: false,
-      cartWindowVisible: false,
     };
   },
   methods: {
-    showLoginWindow() {
-      this.loginWindowVisible = true;
-    },
-    hideLoginWindow() {
-      this.loginWindowVisible = false;
-    },
-    showRegistrationWindow() {
-      this.registrationWindowVisible = true;
-    },
-    hideRegistrationWindow() {
-      this.registrationWindowVisible = false;
-    },
-    showCartWindow() {
-      this.cartWindowVisible = true;
-    },
-    hideCartWindow() {
-      this.cartWindowVisible = false;
-    },
-    stateToLogin(event) {
-      if (event){this.isLogin = true;}
+    ...mapActions("tokens", ["addTokens"]),
+    ...mapActions("cart", ["loadBackup"]),
+    stateToLogin() {
+      this.isLogin = true;
     },
     stateToLogout() {
       this.isLogin = false;
     },
   },
+
+  created() {
+    console.log("on APP created")
+    let get_access_token = localStorage.getItem('access_token')
+    let get_refresh_token = localStorage.getItem('refresh_token')
+    console.log("refresh_token from local storage", get_refresh_token)
+    if (get_access_token !== null && get_access_token !== 'null') {
+      console.log("tokens in local storage exist")
+      this.addTokens([get_access_token, get_refresh_token])
+      this.isLogin = true
+    }
+    let get_products = localStorage.getItem('cart')
+    console.log("products from local storage", get_products)
+    if (get_products !== null && get_products !== 'null') {
+      console.log("products in local storage exist")
+      this.loadBackup()
+    }
+  }
 };
 </script>
 

@@ -13,6 +13,7 @@ import UserProfile from "@/components/UserProfile";
 import Logout from "@/components/Logout";
 import DialogWindow from "./components/UI/DialogWindow";
 import Cart from "./components/Cart";
+import Header from "./components/Header";
 
 Vue.config.productionTip = false;
 Vue.component("card", Card).default;
@@ -26,9 +27,11 @@ Vue.component("user_profile", UserProfile).default;
 Vue.component("logout", Logout).default;
 Vue.component("dialog_window", DialogWindow).default;
 Vue.component("cart", Cart).default
+Vue.component('omnom_header', Header).default
+
 
 new Vue({
-  router,
-  store,
-  render: (h) => h(App),
+    router,
+    store,
+    render: (h) => h(App),
 }).$mount("#app");

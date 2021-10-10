@@ -25,3 +25,8 @@ type UpdateOrderRequest struct {
 	OrderID int    `json:"order_id"`
 	Status  string `json:"status"`
 }
+
+type OrderCreationResponse struct {
+	OrderID    int `json:"order_id"`
+	ProductQty int `json:"product_qty"`
+}
