@@ -1,10 +1,21 @@
 <template>
-  <div class="supplier_section" id="supplier_section_id">
-    <supplier
-        v-for="(supplier, id) in suppliers_array"
-        :key="id"
-        :supplier_ent="supplier"
-    ></supplier>
+  <div>
+    <div id="supplier_section_id" class="supplier_section">
+      <div v-if="showLoading">Loading...</div>
+      <supplier v-for="(supplier, id) in suppliers_array_shown"
+                :key="id"
+                :supplier_ent="supplier"
+                @showProductsFor="showProductsFor"
+      ></supplier>
+
+    </div>
+    <div class="supplier_products_section">
+      <product
+          v-for="(product, id) in productsShown"
+          :key="id"
+          :product_ent="product"
+      ></product>
+    </div>
   </div>
 </template>
 
@@ -14,29 +25,58 @@ export default {
   data() {
     return {
       suppliers_array: [],
+      suppliers_array_shown: [],
+      showLoading: true,
+      productsForID: 0,
+      products: [],
+      productsShown: [],
     };
   },
+  props: {
+    supplierType: {
+      type: String,
+      required: false,
+      default: "",
+    }
+  },
+  watch: {
+    supplierType(newValue) {
+      if (newValue === 'all') {
+        this.suppliers_array_shown = this.suppliers_array
+        return
+      }
+      this.suppliers_array_shown = this.suppliers_array.filter(supplier => supplier.type === newValue)
+      this.productsForID = 0
+    },
+    productsForID(newValue) {
+      this.productsShown = this.products.filter(product => product.id_supplier === newValue)
+    }
+  },
   methods: {
+    showProductsFor(event) {
+      this.productsForID = event
+    },
     async getAllSuppliers() {
       let resp = await fetch("http://localhost:8081/suppliers", {
         method: "GET",
       });
-      let suppliersMassive = await resp.json();
-      return suppliersMassive;
+      return resp.json();
     },
   },
-  created() {
-  },
-  async mounted() {
-    document.getElementById("supplier_section_id").innerText = "Loading";
+  async created() {
     this.suppliers_array = await this.getAllSuppliers();
-    document.getElementById("supplier_section_id").innerText = "";
+    this.showLoading = false
+    this.suppliers_array_shown = this.suppliers_array
+    localStorage.setItem('Suppliers', JSON.stringify(this.suppliers_array))
+    this.$emit('suppliers_loaded')
+    this.products = JSON.parse(localStorage.getItem('Products'))
   },
 };
 </script>
 
 <style scoped>
-.supplier_section {
+.supplier_section,
+.supplier_products_section {
   width: auto;
   height: auto;
   border: solid black;
@@ -57,7 +97,7 @@ export default {
   }
 }
 
-.supplier_section > * {
+.supplier_section, > * {
   box-sizing: border-box;
   flex: 0 1 15em;
   opacity: 0;

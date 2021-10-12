@@ -1,5 +1,5 @@
 <template>
-  <div v-if="show" class="logout" id="logout_id" @click="logout">Logout</div>
+  <div v-if="show" id="logout_id" class="logout" @click="logout">Logout</div>
 </template>
 
 <script>
@@ -40,9 +40,9 @@ export default {
           await this.logout();
         }
       } else {
-        console.log("not ok response", response);
         this.removeTokens();
         this.$emit("userLogout");
+        console.log("not ok response", response);
       }
     },
   },

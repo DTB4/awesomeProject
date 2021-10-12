@@ -24,7 +24,7 @@ type OrderProductsRepository struct {
 }
 
 func (op OrderProductsRepository) Create(orderProduct *models.OrderProduct) (int, error) {
-	result, err := op.db.Exec("INSERT INTO order_product (order_id, product_id, quantity) VALUES (?, ?, ?)", orderProduct.OrderID, orderProduct.ProductID, orderProduct.Quantity)
+	result, err := op.db.Exec("INSERT INTO order_product (id, order_id, product_id, quantity, price) VALUES (?, ?, ?, ?, ?)", 0, orderProduct.OrderID, orderProduct.ProductID, orderProduct.Quantity, orderProduct.Price)
 	if err != nil {
 		return 0, err
 	}
@@ -43,7 +43,7 @@ func (op OrderProductsRepository) GetByOrderID(id int) (*[]models.OrderProduct, 
 	}
 	orderProduct := models.OrderProduct{}
 	for rows.Next() {
-		err = rows.Scan(&orderProduct.OrderID, &orderProduct.ProductID, &orderProduct.Quantity)
+		err = rows.Scan(&orderProduct.ID, &orderProduct.OrderID, &orderProduct.ProductID, &orderProduct.Quantity, &orderProduct.Price)
 		if err != nil {
 			log.Println(err)
 		}
@@ -57,7 +57,7 @@ func (op OrderProductsRepository) GetByOrderID(id int) (*[]models.OrderProduct, 
 }
 
 func (op OrderProductsRepository) Update(orderProduct *models.OrderProduct) (int, error) {
-	result, err := op.db.Exec("UPDATE order_product SET quantity=? WHERE order_id=? AND product_id=?", orderProduct.Quantity, orderProduct.OrderID, orderProduct.ProductID)
+	result, err := op.db.Exec("UPDATE order_product SET quantity=?, price=? WHERE id=? ", orderProduct.Quantity, orderProduct.Price, orderProduct.ID)
 	if err != nil {
 		return 0, err
 	}

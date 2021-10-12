@@ -1,5 +1,5 @@
 <template>
-  <div class="user_profile_container" id="user_profile_container_id">
+  <div id="user_profile_container_id" class="user_profile_container">
     <h2>Profile</h2>
     {{ first_name }}
     {{ last_name }}
@@ -27,7 +27,6 @@ export default {
       const response = await fetch("http://localhost:8081/profile", {
         method: "GET",
         mode: "cors",
-        // credentials: 'include',
         headers: {
           Accept: "*/*",
           Authorization: "Bearer " + localStorage.getItem("access_token"),
@@ -51,7 +50,7 @@ export default {
       }
     },
   },
-  async mounted() {
+  async created() {
     await this.getUserProfile();
   },
 };

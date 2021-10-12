@@ -94,8 +94,14 @@ export default {
 </script>
 
 <style scoped>
-header {
+.main_header {
+  display: flex;
+  justify-content: space-around;
   height: 15vh;
   background: #2c3e50;
+}
+
+.main_header > * {
+  color: white;
 }
 </style>

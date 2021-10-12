@@ -1,11 +1,11 @@
 <template>
-  <div class="supplier">
-    <a class="supplier_link" rel="">
+  <div class="supplier" @click="$emit('showProductsFor', supplier_ent.id)">
+    <a class="supplier_link">
       <img
-          class="supplier_img"
-          width="100%"
           :src="supplier_ent.img_url"
           alt=""
+          class="supplier_img"
+          width="100%"
       />
       <h2 class="supplier_name">{{ supplier_ent.name }}</h2>
     </a>

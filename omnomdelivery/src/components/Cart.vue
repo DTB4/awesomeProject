@@ -1,10 +1,10 @@
 <template>
-  <div class="cart" id="cart_id">
+  <div id="cart_id" class="cart">
     <div v-if="cart_products_array.length === 0">Cart is empty</div>
     <div
-        class="cart_product"
         v-for="(product, id) in cart_products_array"
         :key="id"
+        class="cart_product"
     >
       <button @click="decreaseProduct(id)">-</button>
       <button @click="increaseProduct(id)">+</button>
@@ -14,7 +14,7 @@
       <button @click="removeProduct(id)">X</button>
     </div>
     <h2>Total {{ totalPrice }}</h2>
-    <div @click="createOrder" v-if="isLogin">Create Order</div>
+    <div v-if="isLogin && cart_products_array.length !== 0" @click="createOrder">Create Order</div>
     <div v-if="!isLogin">pls login to make order</div>
   </div>
 </template>
@@ -50,7 +50,7 @@ export default {
             100 *
             this.cart_products_array[i][1];
       }
-      return total / 100;
+      return (total / 100).toFixed(2);
     },
   },
   methods: {
@@ -72,6 +72,7 @@ export default {
           order_id: 0,
           product_id: this.cart_products_array[i][0].id,
           quantity: this.cart_products_array[i][1],
+          price: this.cart_products_array[i][0].price
         })
         console.log(productsBody)
       }
@@ -88,7 +89,8 @@ export default {
       if (response.ok) {
         this.clearCart()
         this.$emit("hideDialogWindow")
-        alert("order Created")
+        let resp = await response.json()
+        alert(`order Created with ID:  ${resp.order_id} and ${resp.product_qty} products`)
       } else if (response.status === 401) {
         //TODO: try to catch 401 error without "error" in console
         let ok = await this.refreshTokens();

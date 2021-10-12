@@ -2,13 +2,15 @@ import {mapActions} from "vuex";
 
 export default {
     data() {
-        return {}
+        return {
+            url: "http://localhost:8081"
+        }
     },
     methods: {
         ...mapActions("tokens", ["addTokens"]),
         async refreshTokens() {
             console.log("refresh function is started");
-            const response = await fetch("http://localhost:8081/refresh", {
+            const response = await fetch(`${this.url}/refresh`, {
                 method: "GET",
                 mode: "cors",
                 // credentials: 'include',

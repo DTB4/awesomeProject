@@ -151,7 +151,7 @@ func (o OrderHandler) Update(w http.ResponseWriter, req *http.Request) {
 func (o OrderHandler) Delete(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "POST":
-
+		//TODO make DELETE logic for orderHandler!
 	default:
 		http.Error(w, "Only POST is Allowed", http.StatusMethodNotAllowed)
 	}
