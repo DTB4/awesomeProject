@@ -1,11 +1,12 @@
 package models
 
 type Config struct {
-	ServerPort   string
-	AuthConfig   AuthConfig
-	DBConfig     DBConfig
-	LogsPath     string
-	ParserConfig ParserConfig
+	ServerPort        string
+	AuthConfig        AuthConfig
+	DBConfig          DBConfig
+	LogsPath          string
+	ParserConfig      ParserConfig
+	CorsHandlerConfig string
 }
 
 type AuthConfig struct {

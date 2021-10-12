@@ -1,2 +1,4 @@
-DELETE FROM uids;
-DELETE FROM users;
+DELETE
+FROM uids;
+DELETE
+FROM users;
