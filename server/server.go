@@ -55,14 +55,17 @@ func Start(cfg *models.Config) *http.Server {
 	mux.HandleFunc("/updateorder", authHandler.AccessTokenCheck(orderHandler.Update))
 
 	mux.HandleFunc("/supplier", supplierHandler.GetSupplierByID)
-	mux.HandleFunc("/suppliers", supplierHandler.GetAllSuppliers)
+	mux.HandleFunc("/suppliers", corsHandler.AddCORSHeaders(supplierHandler.GetAllSuppliers))
 	mux.HandleFunc("/supplierstype", supplierHandler.GetSuppliersByType)
 	mux.HandleFunc("/supplierstime", supplierHandler.GetSuppliersByTime)
+	mux.HandleFunc("/supplierstypes", corsHandler.AddCORSHeaders(supplierHandler.GetSuppliersTypes))
+	mux.HandleFunc("/supplierparam", corsHandler.AddCORSHeaders(supplierHandler.GetByParams))
 
 	mux.HandleFunc("/product", productHandler.GetProductDyID)
-	mux.HandleFunc("/products", productHandler.GetAll)
+	mux.HandleFunc("/products", corsHandler.AddCORSHeaders(productHandler.GetAll))
 	mux.HandleFunc("/productsbytype", productHandler.GetAllByType)
-	mux.HandleFunc("/productsbysupplier", productHandler.GetAllBySupplierID)
+	mux.HandleFunc("/productsbysupplier", corsHandler.AddCORSHeaders(productHandler.GetAllBySupplierID))
+	mux.HandleFunc("/productstypes", corsHandler.AddCORSHeaders(productHandler.GetUniqTypes))
 
 	srv := http.Server{
 		Addr:    cfg.ServerPort,

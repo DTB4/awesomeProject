@@ -4,14 +4,14 @@
     <div>{{ value }}</div>
     <div>{{ data }}</div>
     <div
-        :title="'Jump to:' + $router.getRoutes()[0].name"
-        @click="$router.push({ name: $router.getRoutes()[0].name })"
         :class="{ clickable: clickable }"
         :style="{ 'font-size': '25px' }"
+        :title="'Jump to:' + $router.getRoutes()[0].name"
+        @click="$router.push({ name: $router.getRoutes()[0].name })"
     >
       Go home
     </div>
-    <div @click="increment" class="clickable">INC</div>
+    <div class="clickable" @click="increment">INC</div>
   </div>
 </template>
 

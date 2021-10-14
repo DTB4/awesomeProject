@@ -16,6 +16,7 @@ type ProductServiceI interface {
 	GetAll() (*[]models.Product, error)
 	GetAllByType(productType string) (*[]models.Product, error)
 	GetAllBySuppliersID(supplierID int) (*[]models.Product, error)
+	GetTypes() (*models.ProductTypesResponse, error)
 }
 
 type ProductService struct {
@@ -52,4 +53,11 @@ func (p ProductService) GetAllBySuppliersID(supplierID int) (*[]models.Product, 
 		return nil, err
 	}
 	return products, nil
+}
+func (p ProductService) GetTypes() (*models.ProductTypesResponse, error) {
+	productTypes, err := p.productRepository.GetTypes()
+	if err != nil {
+		return nil, err
+	}
+	return productTypes, nil
 }

@@ -48,3 +48,6 @@ type ProductTypeRequest struct {
 type ProductSupplierIDRequest struct {
 	SupplierID int `json:"supplier_id"`
 }
+type ProductTypesResponse struct {
+	Types []string `json:"types"`
+}

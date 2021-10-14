@@ -2,7 +2,7 @@
   <div>
     <div class="main_header">
       <div v-if="!isLogin" @click="showLoginWindow()">Login</div>
-      <div @click="cartWindowVisible=true">Cart</div>
+      <div @click="cartWindowVisible=true" @userLogout="$emit('userLogout')">Cart</div>
       <div v-if="!isLogin" @click="showRegistrationWindow()">Register</div>
       <logout v-if="isLogin" @userLogout="$emit('userLogout')"></logout>
       <div v-if="isLogin" @click="showProfileWindow()">Profile</div>

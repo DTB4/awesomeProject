@@ -5,10 +5,10 @@
     <div>{{ step }}</div>
     <div ref="test">TEST</div>
     <card
+        :clickable="clickable"
+        :data="data"
         :title="name"
         :value="value"
-        :data="data"
-        :clickable="clickable"
         @increment="handler"
     ></card>
 

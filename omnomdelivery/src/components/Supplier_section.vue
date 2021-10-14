@@ -2,7 +2,7 @@
   <div>
     <div id="supplier_section_id" class="supplier_section">
       <div v-if="showLoading">Loading...</div>
-      <supplier v-for="(supplier, id) in suppliers_array_shown"
+      <supplier v-for="(supplier, id) in suppliers_array"
                 :key="id"
                 :supplier_ent="supplier"
                 @showProductsFor="showProductsFor"
@@ -11,7 +11,7 @@
     </div>
     <div class="supplier_products_section">
       <product
-          v-for="(product, id) in productsShown"
+          v-for="(product, id) in products"
           :key="id"
           :product_ent="product"
       ></product>
@@ -25,14 +25,18 @@ export default {
   data() {
     return {
       suppliers_array: [],
-      suppliers_array_shown: [],
       showLoading: true,
       productsForID: 0,
       products: [],
-      productsShown: [],
     };
   },
+  //TODO: make sorting by work time
   props: {
+    workingTime: {
+      type: String,
+      required: false,
+      default: "",
+    },
     supplierType: {
       type: String,
       required: false,
@@ -40,36 +44,61 @@ export default {
     }
   },
   watch: {
-    supplierType(newValue) {
-      if (newValue === 'all') {
-        this.suppliers_array_shown = this.suppliers_array
-        return
-      }
-      this.suppliers_array_shown = this.suppliers_array.filter(supplier => supplier.type === newValue)
+    // supplierType(newValue) {
+    //   if (newValue === 'all') {
+    //     this.suppliers_array_shown = this.suppliers_array
+    //     return
+    //   }
+    //   this.suppliers_array_shown = this.suppliers_array.filter(supplier => supplier.type === newValue)
+    //   this.productsForID = 0
+    // },
+    async workingTime(newValue) {
+      await this.getSuppliers(this.supplierType, newValue)
       this.productsForID = 0
+      this.products = []
+
     },
-    productsForID(newValue) {
-      this.productsShown = this.products.filter(product => product.id_supplier === newValue)
+    async supplierType(newValue) {
+      await this.getSuppliers(newValue, this.workingTime)
+      this.productsForID = 0
+      this.products = []
+
+    },
+    async productsForID(newValue) {
+      await this.getProductsForSupplierByID(newValue)
     }
   },
   methods: {
+    async getProductsForSupplierByID(id) {
+      if (id === 0) {
+        return
+      }
+      let input = "http://localhost:8081/productsbysupplier?" + "_supplier_id=" + id
+      let resp = await fetch(input, {
+        method: "GET",
+      });
+      this.products = await resp.json()
+
+    },
     showProductsFor(event) {
       this.productsForID = event
     },
-    async getAllSuppliers() {
-      let resp = await fetch("http://localhost:8081/suppliers", {
+    async getSuppliers(type, time) {
+      let input = "http://localhost:8081/supplierparam?" + "_type=" + type + "&_time=" + time
+      let resp = await fetch(input, {
         method: "GET",
       });
-      return resp.json();
+      this.suppliers_array = await resp.json()
+
     },
   },
   async created() {
-    this.suppliers_array = await this.getAllSuppliers();
+    await this.getSuppliers(this.supplierType, this.workingTime);
+
+    // this.suppliers_array_shown = this.suppliers_array
+    // this.$emit('suppliers_loaded')
     this.showLoading = false
-    this.suppliers_array_shown = this.suppliers_array
-    localStorage.setItem('Suppliers', JSON.stringify(this.suppliers_array))
-    this.$emit('suppliers_loaded')
-    this.products = JSON.parse(localStorage.getItem('Products'))
+    console.log(this.suppliers_array)
   },
 };
 </script>

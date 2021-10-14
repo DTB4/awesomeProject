@@ -1,36 +1,36 @@
 <template>
-  <div class="login_container" id="login_container_id">
+  <div id="login_container_id" class="login_container">
     <h2>Login</h2>
     <form>
       <input
-          @submit.prevent
           id="login_input_email"
-          class="input"
-          type="email"
-          @input="email = $event.target.value"
-          v-bind:value="email"
-          placeholder="email"
           autocomplete="email"
+          class="input"
+          placeholder="email"
+          type="email"
+          v-bind:value="email"
+          @input="email = $event.target.value"
+          @submit.prevent
       />
       <input
-          @submit.prevent
           id="login_input_password"
-          class="input"
-          type="password"
-          @input="password = $event.target.value"
-          v-bind:value="password"
-          placeholder="password"
           autocomplete="current-password"
+          class="input"
+          placeholder="password"
+          type="password"
+          v-bind:value="password"
+          @input="password = $event.target.value"
+          @submit.prevent
       />
     </form>
 
     <input
-        @submit.prevent
         id="login_submit"
         class="button"
         type="button"
         value="Login"
         @click="loginUser()"
+        @submit.prevent
     />
   </div>
 </template>
