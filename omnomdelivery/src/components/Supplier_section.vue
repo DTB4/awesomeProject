@@ -34,8 +34,7 @@ export default {
   props: {
     workingTime: {
       type: String,
-      required: false,
-      default: "",
+      required: true,
     },
     supplierType: {
       type: String,
@@ -44,14 +43,6 @@ export default {
     }
   },
   watch: {
-    // supplierType(newValue) {
-    //   if (newValue === 'all') {
-    //     this.suppliers_array_shown = this.suppliers_array
-    //     return
-    //   }
-    //   this.suppliers_array_shown = this.suppliers_array.filter(supplier => supplier.type === newValue)
-    //   this.productsForID = 0
-    // },
     async workingTime(newValue) {
       await this.getSuppliers(this.supplierType, newValue)
       this.productsForID = 0
@@ -94,9 +85,6 @@ export default {
   },
   async created() {
     await this.getSuppliers(this.supplierType, this.workingTime);
-
-    // this.suppliers_array_shown = this.suppliers_array
-    // this.$emit('suppliers_loaded')
     this.showLoading = false
     console.log(this.suppliers_array)
   },

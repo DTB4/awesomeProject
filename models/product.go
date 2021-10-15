@@ -51,3 +51,7 @@ type ProductSupplierIDRequest struct {
 type ProductTypesResponse struct {
 	Types []string `json:"types"`
 }
+type ProductNamesResponse struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}

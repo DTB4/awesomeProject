@@ -93,14 +93,10 @@ func (p ProductHandler) GetAllByType(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "GET":
 
-		reqProduct := new(models.ProductTypeRequest)
-		err := json.NewDecoder(req.Body).Decode(&reqProduct)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusNotAcceptable)
-			return
-		}
+		query := req.URL.Query()
+		productType := query.Get("_product_type")
 
-		products, err := p.productService.GetAllByType(reqProduct.ProductType)
+		products, err := p.productService.GetAllByType(productType)
 
 		jProducts, err := json.Marshal(*products)
 		if err != nil {
@@ -110,9 +106,9 @@ func (p ProductHandler) GetAllByType(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		length, err := w.Write(jProducts)
 		if err != nil {
-			log.Fatal(err)
+			p.logger.FErrorLog("error in GetAllByType while responding", err)
 		}
-		fmt.Println(length)
+		p.logger.FInfoLog("GetAllByType handler responded with length: ", length)
 
 	default:
 		http.Error(w, "Only GET is Allowed", http.StatusMethodNotAllowed)

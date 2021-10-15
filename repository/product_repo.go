@@ -3,6 +3,7 @@ package repository
 import (
 	"awesomeProject/models"
 	"database/sql"
+	"fmt"
 	"log"
 )
 
@@ -105,7 +106,12 @@ func (p ProductsRepository) GetAllBySupplierID(id int) (*[]models.Product, error
 
 func (p ProductsRepository) GetALLByType(productType string) (*[]models.Product, error) {
 	var products []models.Product
-	rows, err := p.db.Query("SELECT * FROM products WHERE type=? AND deleted=false", productType)
+	query := "SELECT * FROM products WHERE deleted=false"
+	if productType != "all" {
+		query += fmt.Sprint(" AND type='", productType, "'")
+	}
+
+	rows, err := p.db.Query(query)
 	if err != nil {
 		return nil, err
 	}

@@ -3,8 +3,7 @@
     <div>
       <div>Order # {{ order.id }}</div>
       <div>Status: {{ order.status }}</div>
-      <div>Date: {{ order.created }}</div>
-      <div>Total: {{}}</div>
+      <div>Date: {{ createdTime }}</div>
     </div>
     <div>
       <orders-product v-for="(product, id) in products"
@@ -29,11 +28,15 @@ export default {
     return {
       products: [],
       showOrder: false,
-      total: 0
+      total: 0,
+      createdTime:"",
     }
   },
   props: {
     order: Object,
+  },
+  watch:{
+
   },
   methods: {
     getTotal() {
@@ -41,7 +44,7 @@ export default {
       for (let i = 0; i < this.products.length; i++) {
         total = total + this.products[i].price
       }
-      this.total = total.toFixed(2)
+      return total.toFixed(2)
     },
     changeVisibility() {
       this.showOrder = this.showOrder !== true;
@@ -61,7 +64,7 @@ export default {
       });
       if (response.ok) {
         this.products = await response.json()
-        this.getTotal()
+        this.total = this.getTotal()
         this.showOrder = true
 
       } else if (response.status === 401) {
@@ -74,6 +77,11 @@ export default {
         console.log("not ok response", response);
       }
     },
+  },
+  created() {
+    let date = new Date(Date.parse(this.order.created))
+    console.log(date)
+    this.createdTime=date.toLocaleString('uk-UK')
   }
 
 }

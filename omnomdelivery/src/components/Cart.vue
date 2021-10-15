@@ -72,7 +72,8 @@ export default {
           order_id: 0,
           product_id: this.cart_products_array[i][0].id,
           quantity: this.cart_products_array[i][1],
-          price: this.cart_products_array[i][0].price
+          price: this.cart_products_array[i][0].price,
+          name: this.cart_products_array[i][0].name,
         })
         console.log(productsBody)
       }

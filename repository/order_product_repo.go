@@ -24,7 +24,7 @@ type OrderProductsRepository struct {
 }
 
 func (op OrderProductsRepository) Create(orderProduct *models.OrderProduct) (int, error) {
-	result, err := op.db.Exec("INSERT INTO order_product (id, order_id, product_id, quantity, price) VALUES (?, ?, ?, ?, ?)", 0, orderProduct.OrderID, orderProduct.ProductID, orderProduct.Quantity, orderProduct.Price)
+	result, err := op.db.Exec("INSERT INTO order_product (id, order_id, product_id, quantity, price, name) VALUES (?, ?, ?, ?, ?, ?)", 0, orderProduct.OrderID, orderProduct.ProductID, orderProduct.Quantity, orderProduct.Price, orderProduct.Name)
 	if err != nil {
 		return 0, err
 	}
@@ -43,7 +43,7 @@ func (op OrderProductsRepository) GetByOrderID(id int) (*[]models.OrderProduct, 
 	}
 	orderProduct := models.OrderProduct{}
 	for rows.Next() {
-		err = rows.Scan(&orderProduct.ID, &orderProduct.OrderID, &orderProduct.ProductID, &orderProduct.Quantity, &orderProduct.Price)
+		err = rows.Scan(&orderProduct.ID, &orderProduct.OrderID, &orderProduct.ProductID, &orderProduct.Quantity, &orderProduct.Price, &orderProduct.Name)
 		if err != nil {
 			log.Println(err)
 		}
