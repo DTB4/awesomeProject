@@ -31,26 +31,29 @@ type OrderHandler struct {
 func (o OrderHandler) Create(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "POST":
-
-		var orderProducts []models.OrderProduct
-		err := json.NewDecoder(req.Body).Decode(&orderProducts)
+		var orderRequest models.OrderRequest
+		err := json.NewDecoder(req.Body).Decode(&orderRequest)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotAcceptable)
 		}
 		order := models.Order{
-			IDUser: req.Context().Value("CurrentUser").(models.ActiveUserData).ID,
-			Status: "created",
+			IDUser:        req.Context().Value("CurrentUser").(models.ActiveUserData).ID,
+			Status:        "created",
+			Address:       orderRequest.Address,
+			ContactNumber: orderRequest.ContactNumber,
 		}
 		orderID, err := o.orderService.CreateOrder(&order)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			//TODO: make logging for errors in all handlers
 			return
 		}
-		orderProductsCreationResult, err := o.orderService.CreateOrderProducts(orderID, &orderProducts)
+		orderProductsCreationResult, err := o.orderService.CreateOrderProducts(orderID, &orderRequest.Products)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+
 		w.WriteHeader(http.StatusOK)
 		orderResponse := models.OrderCreationResponse{
 			OrderID:    orderID,

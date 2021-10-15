@@ -3,12 +3,20 @@ package models
 import "time"
 
 type Order struct {
-	ID      int       `json:"id"`
-	IDUser  int       `json:"id_user"`
-	Status  string    `json:"status"`
-	Created time.Time `json:"created"`
-	Updated time.Time `json:"updated"`
-	Deleted bool      `json:"deleted"`
+	ID            int       `json:"id"`
+	Address       string    `json:"address"`
+	ContactNumber string    `json:"contact_number"`
+	IDUser        int       `json:"id_user"`
+	Status        string    `json:"status"`
+	Created       time.Time `json:"created"`
+	Updated       time.Time `json:"updated"`
+	Deleted       bool      `json:"deleted"`
+}
+
+type OrderRequest struct {
+	Address       string         `json:"address"`
+	ContactNumber string         `json:"contact_number"`
+	Products      []OrderProduct `json:"products"`
 }
 
 type OrderProduct struct {

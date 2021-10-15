@@ -1,6 +1,6 @@
 <template>
   <div id="cart_id" class="cart">
-    <div v-if="cart_products_array.length === 0">Cart is empty</div>
+   <div><div v-if="cart_products_array.length === 0">Cart is empty</div>
     <div
         v-for="(product, id) in cart_products_array"
         :key="id"
@@ -14,8 +14,29 @@
       <button @click="removeProduct(id)">X</button>
     </div>
     <h2>Total {{ totalPrice }}</h2>
-    <div v-if="isLogin && cart_products_array.length !== 0" @click="createOrder">Create Order</div>
-    <div v-if="!isLogin">pls login to make order</div>
+    <div v-if="isLogin && cart_products_array.length !== 0" @click="showConfirmationWindow=true">Make Order</div>
+    <div v-if="!isLogin">pls login to make order</div></div>
+    <div v-if="showConfirmationWindow">
+      <input
+          id="confirmation_input_address"
+          class="input"
+          placeholder="address"
+          type="text"
+          v-bind:value="address"
+          @input="address = $event.target.value"
+          @submit.prevent
+      />
+      <input
+          id="confirmation_input_contact_number"
+          class="input"
+          placeholder="contact_number"
+          type="text"
+          v-bind:value="contactNumber"
+          @input="contactNumber = $event.target.value"
+          @submit.prevent
+      />
+      <div @click="createOrder">Confirm Order</div>
+    </div>
   </div>
 </template>
 
@@ -36,6 +57,9 @@ export default {
   data() {
     return {
       cart_products_array: [],
+      showConfirmationWindow: false,
+      address: "",
+      contactNumber: "",
     };
   },
   computed: {
@@ -66,18 +90,23 @@ export default {
     ]),
     async createOrder() {
       console.log('orderCreate Button pressed')
-      let productsBody = []
+      let productsBody = {};
+      productsBody.address = this.address
+      productsBody.contact_number = this.contactNumber
+      productsBody.products=[]
+      console.log(productsBody);
       for (let i = 0; i < this.cart_products_array.length; i++) {
-        productsBody.push({
+        productsBody.products.push({
           order_id: 0,
           product_id: this.cart_products_array[i][0].id,
           quantity: this.cart_products_array[i][1],
           price: this.cart_products_array[i][0].price,
           name: this.cart_products_array[i][0].name,
         })
-        console.log(productsBody)
+
       }
       console.log(productsBody)
+
       const response = await fetch("http://localhost:8081/createorder", {
         method: "POST",
         mode: "cors",

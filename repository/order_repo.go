@@ -25,7 +25,7 @@ type OrderRepository struct {
 }
 
 func (or OrderRepository) Create(order *models.Order) (int, error) {
-	result, err := or.db.Exec("INSERT INTO orders (id, id_user, status, created, updated) VALUES (?, ?, ?, ?, ?)", order.ID, order.IDUser, "created", time.Now(), time.Now())
+	result, err := or.db.Exec("INSERT INTO orders (id, id_user, status, created, updated, adress, contact_number) VALUES (?, ?, ?, ?, ?, ?, ?)", order.ID, order.IDUser, "created", time.Now(), time.Now(), order.Address, order.ContactNumber)
 	if err != nil {
 		return 0, err
 	}
@@ -43,7 +43,7 @@ func (or OrderRepository) GetByID(orderID int) (*models.Order, error) {
 		return nil, err
 	}
 	for rows.Next() {
-		err = rows.Scan(&order.ID, &order.IDUser, &order.Status, &order.Created, &order.Updated)
+		err = rows.Scan(&order.ID, &order.IDUser, &order.Status, &order.Created, &order.Updated, &order.Address, &order.ContactNumber)
 		if err != nil {
 			return nil, err
 		}
@@ -63,7 +63,7 @@ func (or OrderRepository) GetUserOrders(userID int) (*[]models.Order, error) {
 	}
 	order := models.Order{}
 	for rows.Next() {
-		err = rows.Scan(&order.ID, &order.IDUser, &order.Status, &order.Created, &order.Updated, &order.Deleted)
+		err = rows.Scan(&order.ID, &order.IDUser, &order.Status, &order.Created, &order.Updated, &order.Deleted, &order.Address, &order.ContactNumber)
 		if err != nil {
 			return nil, err
 		}
