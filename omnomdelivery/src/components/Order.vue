@@ -4,13 +4,14 @@
       <div>Order # {{ order.id }}</div>
       <div>Status: {{ order.status }}</div>
       <div>Date: {{ createdTime }}</div>
+      <div>Total: {{ order.total }}</div>
     </div>
     <div>
       <orders-product v-for="(product, id) in products"
                       :key="id"
                       :product="product"
                       :show-order="showOrder"></orders-product>
-      <div v-if="showOrder">Total: {{ total }}</div>
+      <div v-if="showOrder">Total: {{ order.total }}</div>
     </div>
 
   </div>
@@ -29,15 +30,13 @@ export default {
       products: [],
       showOrder: false,
       total: 0,
-      createdTime:"",
+      createdTime: "",
     }
   },
   props: {
     order: Object,
   },
-  watch:{
-
-  },
+  watch: {},
   methods: {
     getTotal() {
       let total = 0
@@ -80,8 +79,7 @@ export default {
   },
   created() {
     let date = new Date(Date.parse(this.order.created))
-    console.log(date)
-    this.createdTime=date.toLocaleString('uk-UK')
+    this.createdTime = date.toLocaleString('uk-UK')
   }
 
 }

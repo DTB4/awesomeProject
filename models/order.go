@@ -11,6 +11,7 @@ type Order struct {
 	Created       time.Time `json:"created"`
 	Updated       time.Time `json:"updated"`
 	Deleted       bool      `json:"deleted"`
+	Total         float64   `json:"total"`
 }
 
 type OrderRequest struct {
@@ -38,6 +39,7 @@ type UpdateOrderRequest struct {
 }
 
 type OrderCreationResponse struct {
-	OrderID    int `json:"order_id"`
-	ProductQty int `json:"product_qty"`
+	OrderID    int     `json:"order_id"`
+	ProductQty int     `json:"product_qty"`
+	Total      float64 `json:"total"`
 }

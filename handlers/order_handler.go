@@ -48,9 +48,16 @@ func (o OrderHandler) Create(w http.ResponseWriter, req *http.Request) {
 			//TODO: make logging for errors in all handlers
 			return
 		}
-		orderProductsCreationResult, err := o.orderService.CreateOrderProducts(orderID, &orderRequest.Products)
+		orderProductsCreationResult, total, err := o.orderService.CreateOrderProducts(orderID, &orderRequest.Products)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		_, err = o.orderService.Update(&models.Order{ID: orderID, Total: total})
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			o.logger.FErrorLog("error in Create order handler while updating total", err)
 			return
 		}
 
@@ -58,6 +65,7 @@ func (o OrderHandler) Create(w http.ResponseWriter, req *http.Request) {
 		orderResponse := models.OrderCreationResponse{
 			OrderID:    orderID,
 			ProductQty: orderProductsCreationResult,
+			Total:      total,
 		}
 		response, _ := json.Marshal(orderResponse)
 
@@ -136,7 +144,7 @@ func (o OrderHandler) Update(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		rowsAffected, err := o.orderService.Update(updateOrderRequest)
+		rowsAffected, err := o.orderService.Update(&models.Order{ID: updateOrderRequest.OrderID, Status: updateOrderRequest.Status})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

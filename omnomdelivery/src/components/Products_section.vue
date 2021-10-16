@@ -27,19 +27,21 @@ export default {
   },
   watch: {
     productType(newValue) {
-      this.products_array=[]
-      this.showLoading=true
+      this.products_array = []
+      this.showLoading = true
       this.getAllProducts(newValue)
     }
   },
   methods: {
     async getAllProducts(type) {
-
+      if (type === "") {
+        return
+      }
       let input = "http://localhost:8081/productsbytype?_product_type=" + type
       let resp = await fetch(input, {
         method: "GET",
       });
-      this.showLoading=false
+      this.showLoading = false
       this.products_array = await resp.json()
     },
   },
@@ -48,7 +50,7 @@ export default {
   },
   async mounted() {
     this.products_array = await this.getAllProducts(this.productType);
-    this.showLoading=false
+    this.showLoading = false
   },
 };
 </script>

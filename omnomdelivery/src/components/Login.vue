@@ -71,7 +71,6 @@ export default {
         ]);
         this.$emit("userLogin");
         this.$emit("hideDialogWindow")
-        console.log("response from server", parsedResponse);
         this.email = "";
         this.password = "";
 

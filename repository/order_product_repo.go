@@ -3,6 +3,7 @@ package repository
 import (
 	"awesomeProject/models"
 	"database/sql"
+	"fmt"
 	"log"
 )
 
@@ -17,6 +18,7 @@ type OrderProductsRepositoryI interface {
 	GetByOrderID(id int) (*[]models.OrderProduct, error)
 	Update(orderProduct *models.OrderProduct) (int, error)
 	DeleteByIDs(orderID, productID int) (int, error)
+	GetProductPrice(productID int) (float32, error)
 }
 
 type OrderProductsRepository struct {
@@ -78,4 +80,25 @@ func (op OrderProductsRepository) DeleteByIDs(orderID, productID int) (int, erro
 		return 0, err
 	}
 	return int(rowsAffected), nil
+}
+
+func (op OrderProductsRepository) GetProductPrice(productID int) (float32, error) {
+	fmt.Println("repos called")
+	var price float32
+	rows, err := op.db.Query("SELECT price FROM products WHERE id=?", productID)
+	if err != nil {
+		return 0, err
+	}
+	for rows.Next() {
+		err = rows.Scan(&price)
+		if err != nil {
+			return 0, err
+		}
+	}
+	fmt.Println("price from repos:", price)
+	err = rows.Close()
+	if err != nil {
+		return price, err
+	}
+	return price, nil
 }

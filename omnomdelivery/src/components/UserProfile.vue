@@ -34,7 +34,6 @@ export default {
       });
       if (response.ok) {
         let parsedResponse = await response.json();
-        console.log("response from server", parsedResponse);
         this.email = parsedResponse.email;
         this.first_name = parsedResponse.first_name;
         this.second_name = parsedResponse.last_name;
@@ -42,10 +41,10 @@ export default {
         //TODO: try to catch 401 error without "error" in console
         let ok = await this.refreshTokens()
         if (ok) {
+          console.log("try again getUserProfile")
           await this.getUserProfile()
         } else {
-          this.removeTokens()
-          this.$emit("userLogout")
+          console.log("not ok response", response);
         }
       }
     },

@@ -3,6 +3,8 @@ package services
 import (
 	"awesomeProject/models"
 	"awesomeProject/repository"
+	"fmt"
+	"math"
 )
 
 func NewOrderService(orderRepository repository.OrderRepositoryI, orderProductsRepository repository.OrderProductsRepositoryI) *OrderService {
@@ -14,10 +16,10 @@ func NewOrderService(orderRepository repository.OrderRepositoryI, orderProductsR
 
 type OrderServiceI interface {
 	CreateOrder(order *models.Order) (int, error)
-	CreateOrderProducts(orderID int, orderProducts *[]models.OrderProduct) (int, error)
+	CreateOrderProducts(orderID int, orderProducts *[]models.OrderProduct) (int, float64, error)
 	GetByID(orderID int) (*[]models.OrderProduct, error)
 	GetAll(userID int) (*[]models.Order, error)
-	Update(updateRequest *models.UpdateOrderRequest) (int, error)
+	Update(updatedOrder *models.Order) (int, error)
 	Delete(orderID int) (int, error)
 }
 
@@ -34,17 +36,31 @@ func (o OrderService) CreateOrder(order *models.Order) (int, error) {
 	return orderID, nil
 }
 
-func (o OrderService) CreateOrderProducts(orderID int, orderProducts *[]models.OrderProduct) (int, error) {
+func (o OrderService) CreateOrderProducts(orderID int, orderProducts *[]models.OrderProduct) (int, float64, error) {
 	var rowsAffectedTotal int
+	var total float64
+	for i := range *orderProducts {
+		actualPrice, err := o.orderProductsRepository.GetProductPrice((*orderProducts)[i].ProductID)
+
+		total = math.Round(total*100+float64(int(actualPrice*100)*(*orderProducts)[i].Quantity)) / 100
+
+		fmt.Println(total)
+		if err != nil {
+			return 0, 0, err
+		}
+		(*orderProducts)[i].Price = actualPrice
+	}
+
 	for i := range *orderProducts {
 		(*orderProducts)[i].OrderID = orderID
 		rowsAffected, err := o.orderProductsRepository.Create(&(*orderProducts)[i])
 		if err != nil {
-			return 0, err
+			return 0, 0, err
 		}
 		rowsAffectedTotal += rowsAffected
 	}
-	return rowsAffectedTotal, nil
+
+	return rowsAffectedTotal, total, nil
 }
 
 func (o OrderService) GetByID(orderID int) (*[]models.OrderProduct, error) {
@@ -63,17 +79,20 @@ func (o OrderService) GetAll(userID int) (*[]models.Order, error) {
 	return orders, nil
 }
 
-func (o OrderService) Update(updateRequest *models.UpdateOrderRequest) (int, error) {
-	var order = new(models.Order)
-	order.ID = updateRequest.OrderID
-	if updateRequest.Status != "" {
-		order.Status = updateRequest.Status
+func (o OrderService) Update(updatedOrder *models.Order) (int, error) {
+	if updatedOrder.Total != 0 {
+		rowsAffected, err := o.orderRepository.SetTotal(updatedOrder.ID, updatedOrder.Total)
+		if err != nil {
+			return 0, err
+		}
+		return rowsAffected, nil
+	} else {
+		rowsAffected, err := o.orderRepository.UpdateStatus(updatedOrder)
+		if err != nil {
+			return 0, err
+		}
+		return rowsAffected, nil
 	}
-	rowsAffected, err := o.orderRepository.Update(order)
-	if err != nil {
-		return 0, err
-	}
-	return rowsAffected, nil
 }
 
 func (o OrderService) Delete(orderID int) (int, error) {

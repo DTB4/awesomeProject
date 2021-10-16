@@ -1,21 +1,23 @@
 <template>
   <div id="cart_id" class="cart">
-   <div><div v-if="cart_products_array.length === 0">Cart is empty</div>
-    <div
-        v-for="(product, id) in cart_products_array"
-        :key="id"
-        class="cart_product"
-    >
-      <button @click="decreaseProduct(id)">-</button>
-      <button @click="increaseProduct(id)">+</button>
-      <div>"x{{ product[1] }}"</div>
-      <div>{{ product[0].name }}</div>
-      <div>{{ product[0].price }} $</div>
-      <button @click="removeProduct(id)">X</button>
+    <div>
+      <div v-if="cart_products_array.length === 0">Cart is empty</div>
+      <div
+          v-for="(product, id) in cart_products_array"
+          :key="id"
+          class="cart_product"
+      >
+        <button @click="decreaseProduct(id)">-</button>
+        <button @click="increaseProduct(id)">+</button>
+        <div>"x{{ product[1] }}"</div>
+        <div>{{ product[0].name }}</div>
+        <div>{{ product[0].price }} $</div>
+        <button @click="removeProduct(id)">X</button>
+      </div>
+      <h2>Total {{ totalPrice }}</h2>
+      <div v-if="isLogin && cart_products_array.length !== 0" @click="showConfirmationWindow=true">Make Order</div>
+      <div v-if="!isLogin">pls login to make order</div>
     </div>
-    <h2>Total {{ totalPrice }}</h2>
-    <div v-if="isLogin && cart_products_array.length !== 0" @click="showConfirmationWindow=true">Make Order</div>
-    <div v-if="!isLogin">pls login to make order</div></div>
     <div v-if="showConfirmationWindow">
       <input
           id="confirmation_input_address"
@@ -70,11 +72,9 @@ export default {
       let total = 0;
       for (let i = 0; i < this.cart_products_array.length; i++) {
         total +=
-            this.cart_products_array[i][0].price *
-            100 *
-            this.cart_products_array[i][1];
+            this.cart_products_array[i][0].price * this.cart_products_array[i][1];
       }
-      return (total / 100).toFixed(2);
+      return total.toFixed(2);
     },
   },
   methods: {
@@ -93,14 +93,13 @@ export default {
       let productsBody = {};
       productsBody.address = this.address
       productsBody.contact_number = this.contactNumber
-      productsBody.products=[]
+      productsBody.products = []
       console.log(productsBody);
       for (let i = 0; i < this.cart_products_array.length; i++) {
         productsBody.products.push({
           order_id: 0,
           product_id: this.cart_products_array[i][0].id,
           quantity: this.cart_products_array[i][1],
-          price: this.cart_products_array[i][0].price,
           name: this.cart_products_array[i][0].name,
         })
 
@@ -120,11 +119,12 @@ export default {
         this.clearCart()
         this.$emit("hideDialogWindow")
         let resp = await response.json()
-        alert(`order Created with ID:  ${resp.order_id} and ${resp.product_qty} products`)
+        alert(`order Created with ID:  ${resp.order_id} and ${resp.product_qty} products. Total: ${resp.total}`)
       } else if (response.status === 401) {
         //TODO: try to catch 401 error without "error" in console
         let ok = await this.refreshTokens();
         if (ok) {
+          console.log("try again createOrder")
           await this.createOrder();
         }
       } else {

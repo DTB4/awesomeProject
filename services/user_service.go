@@ -14,7 +14,7 @@ func NewUserService(userRepository repository.UserRepositoryI) *UserService {
 
 type UserServiceI interface {
 	Create(user *models.User) (int, error)
-	GetByID(userID int) (*models.User, error)
+	GetByID(userID int) (*models.UserResponse, error)
 	GetByEmail(email string) (*models.User, error)
 	Update(user *models.User) (int, error)
 }
@@ -34,12 +34,13 @@ func (u UserService) Create(user *models.User) (int, error) {
 	return lastID, nil
 }
 
-func (u UserService) GetByID(userID int) (*models.User, error) {
+func (u UserService) GetByID(userID int) (*models.UserResponse, error) {
 	user, err := u.userRepository.GetByID(userID)
 	if err != nil {
 		return nil, err
 	}
-	return user, nil
+	userResponse := models.UserModelTransform(user)
+	return userResponse, nil
 }
 
 func (u UserService) GetByEmail(email string) (*models.User, error) {

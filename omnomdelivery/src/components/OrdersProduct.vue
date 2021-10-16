@@ -22,9 +22,7 @@ export default {
     showOrder: Boolean,
     product: Object,
   },
-  methods:{
-
-  },
+  methods: {},
   created() {
 
 

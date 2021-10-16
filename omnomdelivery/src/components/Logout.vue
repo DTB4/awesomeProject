@@ -22,7 +22,7 @@ export default {
     ...mapActions("tokens", ["removeTokens"]),
     async logout() {
       const response = await fetch("http://localhost:8081/logout", {
-        method: "POST",
+        method: "GET",
         mode: "cors",
         headers: {
           Accept: "*/*",

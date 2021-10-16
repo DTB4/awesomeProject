@@ -86,7 +86,6 @@ export default {
   async created() {
     await this.getSuppliers(this.supplierType, this.workingTime);
     this.showLoading = false
-    console.log(this.suppliers_array)
   },
 };
 </script>

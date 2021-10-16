@@ -16,10 +16,11 @@ func main() {
 	cfg := configs.InitConfig()
 	myLogger := logger.NewLogger(cfg.LogsPath)
 	srv := server.Start(cfg)
+	myLogger.FInfoLog("server started with config: ", *cfg)
 	go func() {
 		err := srv.ListenAndServe()
 		if err != nil {
-			myLogger.InfoLog("Server Message", err)
+			myLogger.FInfoLog("Server Message", err)
 		}
 	}()
 
@@ -33,7 +34,7 @@ func main() {
 	defer cancel()
 	err := srv.Shutdown(ctx)
 	if err != nil {
-		myLogger.InfoLog("Shutdown info: ", err)
+		myLogger.FInfoLog("Shutdown info: ", err)
 	}
 
 }

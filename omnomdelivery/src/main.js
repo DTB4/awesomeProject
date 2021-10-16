@@ -2,7 +2,6 @@ import Vue from "vue";
 import App from "./App.vue";
 import router from "./router";
 import store from "./store";
-import Card from "@/components/Card";
 import Product from "./components/Product";
 import Products_section from "@/components/Products_section";
 import Supplier_section from "@/components/Supplier_section";
@@ -16,7 +15,6 @@ import Cart from "./components/Cart";
 import Header from "./components/Header";
 
 Vue.config.productionTip = false;
-Vue.component("card", Card).default;
 Vue.component("product", Product).default;
 Vue.component("products", Products_section).default;
 Vue.component("suppliers", Supplier_section).default;

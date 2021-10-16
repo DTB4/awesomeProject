@@ -18,7 +18,8 @@
         :show="ordersWindowVisible"
         @hideDialogWindow="hideOrdersWindow"
     >
-      <orders>Orders</orders>
+      <orders @hideDialogWindow="hideOrdersWindow(), showLoginWindow()" @userLogout="$emit('userLogout')">Orders
+      </orders>
     </dialog_window>
     <dialog_window
         :show="registrationWindowVisible"
@@ -36,7 +37,8 @@
         :show="profileWindowVisible"
         @hideDialogWindow="hideProfileWindow()"
     >
-      <user_profile @userLogout="$emit('userLogout')"></user_profile>
+      <user_profile @hideDialogWindow="hideProfileWindow(), showLoginWindow()"
+                    @userLogout="$emit('userLogout')"></user_profile>
     </dialog_window>
 
   </div>
