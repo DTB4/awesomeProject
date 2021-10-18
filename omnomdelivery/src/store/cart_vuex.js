@@ -23,7 +23,10 @@ const mutations = {
         localStorage.setItem('cart', JSON.stringify(state.products))
     },
     loadFromLocalStorage(state) {
-        state.products = JSON.parse(localStorage.getItem('cart'))
+        let get_products = JSON.parse(localStorage.getItem('cart'))
+        if (get_products !== null && get_products !== 'null'){
+        state.products = get_products
+        }
     },
     removeAllProducts(state) {
         localStorage.removeItem('cart')
@@ -48,7 +51,7 @@ const actions = {
         context.commit("decreaseProduct", id);
         context.commit("saveToLocalStorage");
     },
-    loadBackup(context) {
+    loadLocalCart(context) {
         context.commit("loadFromLocalStorage");
     },
     clearCart(context) {

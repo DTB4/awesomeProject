@@ -91,10 +91,22 @@ export default {
 </script>
 
 <style scoped>
-.supplier_section,
-.supplier_products_section {
+.supplier_section {
   width: auto;
   height: auto;
+  border: solid black;
+  background: antiquewhite;
+  display: flex;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+  position: relative;
+  justify-content: space-evenly;
+}
+
+.supplier_products_section {
+  overflow: auto;
+  width: auto;
+  height: 100%;
   border: solid black;
   background: antiquewhite;
   display: flex;
@@ -113,7 +125,7 @@ export default {
   }
 }
 
-.supplier_section, > * {
+.supplier_section > * {
   box-sizing: border-box;
   flex: 0 1 15em;
   opacity: 0;

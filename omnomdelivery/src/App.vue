@@ -1,14 +1,15 @@
 <template>
-  <div id="app">
-    <omnom_header :is-login="isLogin" @userLogin="stateToLogin" @userLogout="stateToLogout"></omnom_header>
+  <div class="app">
+    <omnom_header></omnom_header>
     <div>
       <router-link to="/">Home</router-link>
+      <router-link to="/goods">Products</router-link>
       <router-link to="/about">About</router-link>
     </div>
 
     <router-view/>
 
-    <footer></footer>
+    <Footer></Footer>
   </div>
 </template>
 
@@ -16,41 +17,54 @@
 
 
 import {mapActions} from "vuex";
+import Footer from "./components/Footer";
 
 export default {
   name: "index",
-  components: {},
-  data() {
-    return {
-      isLogin: false,
-    }
-  },
+  components: {Footer},
   methods: {
-    ...mapActions("tokens", ["addTokens"]),
-    ...mapActions("cart", ["loadBackup"]),
-
-    stateToLogout() {
-      this.isLogin = false;
-    },
-    stateToLogin() {
-      this.isLogin = true;
-    },
+    ...mapActions("tokens", ["loadLocalTokens"]),
+    ...mapActions("cart", ["loadLocalCart"]),
   },
   created() {
-    let get_access_token = localStorage.getItem('access_token')
-    let get_refresh_token = localStorage.getItem('refresh_token')
-    if (get_access_token !== null && get_access_token !== 'null') {
-      this.addTokens([get_access_token, get_refresh_token])
-      this.isLogin = true
-    }
-    let get_products = localStorage.getItem('cart')
-    if (get_products !== null && get_products !== 'null') {
-      this.loadBackup()
-    }
+    this.loadLocalTokens()
+    this.loadLocalCart()
+
   }
 };
 </script>
 
 <style>
+.app{
 
+
+}
+input {
+  width: 100%;
+  border: 1px solid coral;
+  margin-top: 1pt;
+  padding: 1pt 2pt;
+
+}
+button{
+  border: 1px solid coral;
+  margin: 5pt;
+  padding: 5pt 7pt;
+  background: none;
+  color: coral;
+}
+button:hover{
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.5);
+  transform: translateY(-2px);
+}
+button:active{
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  transform: translateY(2px);
+  opacity: 0.7;
+}
+*{
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
 </style>

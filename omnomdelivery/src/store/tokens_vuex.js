@@ -35,6 +35,18 @@ const actions = {
         context.commit("addRefreshToken", tokens[1]);
         context.commit("setLoginState");
     },
+    loadLocalTokens(context){
+        let get_access_token = localStorage.getItem('access_token')
+        let get_refresh_token = localStorage.getItem('refresh_token')
+        if (get_access_token !== null && get_access_token !== 'null'){
+            context.commit("addAccessToken", get_access_token);
+            context.commit("addRefreshToken", get_refresh_token);
+            context.commit("setLoginState");
+        }else{
+            context.commit("setLogoutState")
+        }
+
+    },
     removeTokens(context) {
         context.commit("removeAccessToken");
         context.commit("removeRefreshToken");

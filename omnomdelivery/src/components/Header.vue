@@ -1,24 +1,28 @@
 <template>
   <div>
     <div class="main_header">
-      <div v-if="!isLogin" @click="showLoginWindow()">Login</div>
-      <div @click="cartWindowVisible=true" @userLogout="$emit('userLogout')">Cart</div>
-      <div v-if="!isLogin" @click="showRegistrationWindow()">Register</div>
-      <logout v-if="isLogin" @userLogout="$emit('userLogout')"></logout>
-      <div v-if="isLogin" @click="showProfileWindow()">Profile</div>
-      <div v-if="isLogin" @click="showOrdersWindow()">Orders</div>
+      <button v-if="!getLoginStatus()" @click="showLoginWindow()">Login</button>
+      <button @click="cartWindowVisible=true">Cart</button>
+      <button v-if="!getLoginStatus()" @click="showRegistrationWindow()">Register</button>
+      <button v-if="getLoginStatus()">
+        <logout></logout>
+      </button>
+      <button v-if="getLoginStatus()" @click="showOrdersWindow()">Orders</button>
+      <div v-if="getLoginStatus()" @click="showProfileWindow()"><img class="profile_img"
+                                                                     src="../assets/avatar_icon1.png" height="30pt">
+      </div>
     </div>
     <dialog_window
         :show="loginWindowVisible"
         @hideDialogWindow="hideLoginWindow"
     >
-      <login @hideDialogWindow="hideLoginWindow" @userLogin="$emit('userLogin')"></login>
+      <login @hideDialogWindow="hideLoginWindow"></login>
     </dialog_window>
     <dialog_window
         :show="ordersWindowVisible"
         @hideDialogWindow="hideOrdersWindow"
     >
-      <orders @hideDialogWindow="hideOrdersWindow(), showLoginWindow()" @userLogout="$emit('userLogout')">Orders
+      <orders @hideDialogWindow="hideOrdersWindow(), showLoginWindow()">Orders
       </orders>
     </dialog_window>
     <dialog_window
@@ -31,14 +35,13 @@
         :show="cartWindowVisible"
         @hideDialogWindow="hideCartWindow()"
     >
-      <cart :is-login="isLogin" @hideDialogWindow="hideCartWindow()"></cart>
+      <cart :is-login="getLoginStatus()" @hideDialogWindow="hideCartWindow()"></cart>
     </dialog_window>
     <dialog_window
         :show="profileWindowVisible"
         @hideDialogWindow="hideProfileWindow()"
     >
-      <user_profile @hideDialogWindow="hideProfileWindow(), showLoginWindow()"
-                    @userLogout="$emit('userLogout')"></user_profile>
+      <user_profile @hideDialogWindow="hideProfileWindow(), showLoginWindow()"></user_profile>
     </dialog_window>
 
   </div>
@@ -46,10 +49,12 @@
 
 <script>
 import Orders from "./Orders";
+import {mapGetters, mapMutations} from "vuex";
 
 export default {
   name: "Header",
   components: {Orders},
+
   data() {
     return {
       loginWindowVisible: false,
@@ -59,10 +64,10 @@ export default {
       ordersWindowVisible: false,
     }
   },
-  props: {
-    isLogin: Boolean
-  },
   methods: {
+    ...mapMutations("tokens", ["setLoginState", "setLogoutState"]),
+    ...mapGetters("tokens", ["getLoginStatus"]),
+
     showProfileWindow() {
       this.profileWindowVisible = true
     },
@@ -90,7 +95,6 @@ export default {
     hideOrdersWindow() {
       this.ordersWindowVisible = false;
     }
-
   }
 };
 </script>
@@ -99,11 +103,14 @@ export default {
 .main_header {
   display: flex;
   justify-content: space-around;
-  height: 15vh;
+  align-items: center;
+  height: 10%;
   background: #2c3e50;
+  padding: 1pt;
 }
 
-.main_header > * {
-  color: white;
+.profile_img {
+
 }
+
 </style>

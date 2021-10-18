@@ -24,14 +24,11 @@
       />
     </form>
 
-    <input
-        id="login_submit"
-        class="button"
-        type="button"
-        value="Login"
+    <button
         @click="loginUser()"
         @submit.prevent
-    />
+    >Login
+    </button>
   </div>
 </template>
 
