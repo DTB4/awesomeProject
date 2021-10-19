@@ -19,9 +19,9 @@ func (m MockUserService) Create(user *models.User) (int, error) {
 	return 0, errors.New("user is empty")
 }
 
-func (m MockUserService) GetByID(userID int) (*models.User, error) {
+func (m MockUserService) GetByID(userID int) (*models.UserResponse, error) {
 	if userID != 0 {
-		user := models.User{
+		user := models.UserResponse{
 			ID:        userID,
 			Email:     "email",
 			FirstName: "FirstName",

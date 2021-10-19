@@ -3,6 +3,7 @@ package repository
 import (
 	"awesomeProject/models"
 	"database/sql"
+	"fmt"
 )
 
 func NewSupplierRepository(db *sql.DB) *SupplierRepository {
@@ -16,6 +17,8 @@ type SupplierRepositoryI interface {
 	GetAll() (*[]models.Supplier, error)
 	GetAllByType(supplierType string) (*[]models.Supplier, error)
 	GetAllByTime(time string) (*[]models.Supplier, error)
+	GetTypes() (*models.SupplierTypeResponse, error)
+	GetByParams(sType string, time string) (*[]models.Supplier, error)
 	Update(restaurant *models.Supplier) (int, error)
 	Delete(id int) (int, error)
 	SoftDelete(id int) (int, error)
@@ -141,6 +144,53 @@ func (s SupplierRepository) GetAllByTime(time string) (*[]models.Supplier, error
 		return nil, err
 	}
 	return &suppliers, nil
+}
+
+func (s SupplierRepository) GetByParams(sType string, time string) (*[]models.Supplier, error) {
+	var suppliers []models.Supplier
+	query := fmt.Sprint("SELECT * FROM suppliers WHERE deleted=false AND opening<= '", time, "' AND closing> '", time, "'")
+	if sType != "all" {
+		query = query + fmt.Sprint("AND type='", sType, "'")
+	}
+	rows, err := s.db.Query(query)
+
+	if err != nil {
+		return nil, err
+	}
+	supplier := models.Supplier{}
+	for rows.Next() {
+		err = rows.Scan(&supplier.ID, &supplier.Name, &supplier.Created, &supplier.Updated, &supplier.Deleted, &supplier.ImgURL, &supplier.Type, &supplier.Opening, &supplier.Closing)
+		if err != nil {
+			return nil, err
+		}
+		suppliers = append(suppliers, supplier)
+	}
+	err = rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	return &suppliers, nil
+}
+
+func (s SupplierRepository) GetTypes() (*models.SupplierTypeResponse, error) {
+	var suppliersTypes models.SupplierTypeResponse
+	rows, err := s.db.Query("SELECT DISTINCT type from suppliers;")
+	if err != nil {
+		return nil, err
+	}
+	var supplierType string
+	for rows.Next() {
+		err = rows.Scan(&supplierType)
+		if err != nil {
+			return nil, err
+		}
+		suppliersTypes.Types = append(suppliersTypes.Types, supplierType)
+	}
+	err = rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	return &suppliersTypes, nil
 }
 
 func (s SupplierRepository) Update(supplier *models.Supplier) (int, error) {

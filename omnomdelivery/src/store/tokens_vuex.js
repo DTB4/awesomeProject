@@ -15,12 +15,11 @@ const mutations = {
     },
     removeAccessToken(state) {
         state.access_token = "";
-        // localStorage.removeItem("access_token");
+        localStorage.removeItem("access_token");
     },
     removeRefreshToken(state) {
         state.refresh_token = "";
-        // localStorage.removeItem("refresh_token");
-        localStorage.clear()
+        localStorage.removeItem("refresh_token");
     },
     setLoginState(state) {
         state.is_login = true;

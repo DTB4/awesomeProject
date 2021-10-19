@@ -17,6 +17,8 @@ type SupplierServiceI interface {
 	GetAll() (*[]models.SupplierResponse, error)
 	GetAllByType(supplierType string) (*[]models.SupplierResponse, error)
 	GetAllByTime(time string) (*[]models.SupplierResponse, error)
+	GetUniqTypes() (*models.SupplierTypeResponse, error)
+	GetByParams(sType string, time string) (*[]models.SupplierResponse, error)
 }
 
 type SupplierService struct {
@@ -71,6 +73,27 @@ func (s SupplierService) GetAllByTime(time string) (*[]models.SupplierResponse, 
 	}
 	if suppliers == nil {
 		return nil, errors.New("no suppliers open in this time")
+	}
+	for _, supplier := range *suppliers {
+		s := models.TransformSupplierForResponse(&supplier)
+		suppliersResponse = append(suppliersResponse, *s)
+	}
+	return &suppliersResponse, nil
+}
+func (s SupplierService) GetUniqTypes() (*models.SupplierTypeResponse, error) {
+	suppliersTypes, err := s.supplierRepository.GetTypes()
+	if err != nil {
+		return nil, err
+	}
+	return suppliersTypes, nil
+}
+
+func (s SupplierService) GetByParams(sType string, time string) (*[]models.SupplierResponse, error) {
+
+	var suppliersResponse []models.SupplierResponse
+	suppliers, err := s.supplierRepository.GetByParams(sType, time)
+	if err != nil {
+		return nil, err
 	}
 	for _, supplier := range *suppliers {
 		s := models.TransformSupplierForResponse(&supplier)

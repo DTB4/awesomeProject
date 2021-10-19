@@ -37,6 +37,7 @@ export default {
         //TODO: try to catch 401 error without "error" in console
         let ok = await this.refreshTokens();
         if (ok) {
+          console.log("try again getOrders")
           await this.getOrders();
         }
       } else {

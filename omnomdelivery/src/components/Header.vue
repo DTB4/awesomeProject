@@ -2,7 +2,7 @@
   <div>
     <div class="main_header">
       <div v-if="!isLogin" @click="showLoginWindow()">Login</div>
-      <div @click="cartWindowVisible=true">Cart</div>
+      <div @click="cartWindowVisible=true" @userLogout="$emit('userLogout')">Cart</div>
       <div v-if="!isLogin" @click="showRegistrationWindow()">Register</div>
       <logout v-if="isLogin" @userLogout="$emit('userLogout')"></logout>
       <div v-if="isLogin" @click="showProfileWindow()">Profile</div>
@@ -18,7 +18,8 @@
         :show="ordersWindowVisible"
         @hideDialogWindow="hideOrdersWindow"
     >
-      <orders>Orders</orders>
+      <orders @hideDialogWindow="hideOrdersWindow(), showLoginWindow()" @userLogout="$emit('userLogout')">Orders
+      </orders>
     </dialog_window>
     <dialog_window
         :show="registrationWindowVisible"
@@ -36,7 +37,8 @@
         :show="profileWindowVisible"
         @hideDialogWindow="hideProfileWindow()"
     >
-      <user_profile @userLogout="$emit('userLogout')"></user_profile>
+      <user_profile @hideDialogWindow="hideProfileWindow(), showLoginWindow()"
+                    @userLogout="$emit('userLogout')"></user_profile>
     </dialog_window>
 
   </div>
@@ -94,8 +96,14 @@ export default {
 </script>
 
 <style scoped>
-header {
+.main_header {
+  display: flex;
+  justify-content: space-around;
   height: 15vh;
   background: #2c3e50;
+}
+
+.main_header > * {
+  color: white;
 }
 </style>

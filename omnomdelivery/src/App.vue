@@ -1,15 +1,19 @@
 <template>
   <div id="app">
     <omnom_header :is-login="isLogin" @userLogin="stateToLogin" @userLogout="stateToLogout"></omnom_header>
+    <div>
+      <router-link to="/">Home</router-link>
+      <router-link to="/about">About</router-link>
+    </div>
 
-    <suppliers>Suppliers section</suppliers>
-    <products>Products section</products>
+    <router-view/>
 
     <footer></footer>
   </div>
 </template>
 
 <script>
+
 
 import {mapActions} from "vuex";
 
@@ -19,33 +23,28 @@ export default {
   data() {
     return {
       isLogin: false,
-    };
+    }
   },
   methods: {
     ...mapActions("tokens", ["addTokens"]),
     ...mapActions("cart", ["loadBackup"]),
-    stateToLogin() {
-      this.isLogin = true;
-    },
+
     stateToLogout() {
       this.isLogin = false;
     },
+    stateToLogin() {
+      this.isLogin = true;
+    },
   },
-
   created() {
-    console.log("on APP created")
     let get_access_token = localStorage.getItem('access_token')
     let get_refresh_token = localStorage.getItem('refresh_token')
-    console.log("refresh_token from local storage", get_refresh_token)
     if (get_access_token !== null && get_access_token !== 'null') {
-      console.log("tokens in local storage exist")
       this.addTokens([get_access_token, get_refresh_token])
       this.isLogin = true
     }
     let get_products = localStorage.getItem('cart')
-    console.log("products from local storage", get_products)
     if (get_products !== null && get_products !== 'null') {
-      console.log("products in local storage exist")
       this.loadBackup()
     }
   }
@@ -53,8 +52,5 @@ export default {
 </script>
 
 <style>
-.main_header {
-  display: flex;
-  justify-content: space-around;
-}
+
 </style>

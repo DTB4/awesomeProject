@@ -1,9 +1,11 @@
 <template>
   <div>
-    <div class="orders_product" v-if="showOrder"
+    <div v-if="showOrder" class="orders_product"
     >
-      <h4>Product ID : {{ product.product_id }}</h4>
+      <h4>Product : {{ product.name }}</h4>
       <h4>Quantity : {{ product.quantity }}</h4>
+      <h4>Price : {{ product.price }}</h4>
+      <h4>Sum: {{ ((product.quantity * (product.price * 100)) / 100).toFixed(2) }}</h4>
     </div>
   </div>
 </template>
@@ -11,9 +13,19 @@
 <script>
 export default {
   name: "OrdersProduct",
+  data() {
+    return {
+      productName: ""
+    }
+  },
   props: {
     showOrder: Boolean,
     product: Object,
+  },
+  methods: {},
+  created() {
+
+
   }
 }
 </script>

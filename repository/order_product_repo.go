@@ -3,6 +3,7 @@ package repository
 import (
 	"awesomeProject/models"
 	"database/sql"
+	"fmt"
 	"log"
 )
 
@@ -17,6 +18,7 @@ type OrderProductsRepositoryI interface {
 	GetByOrderID(id int) (*[]models.OrderProduct, error)
 	Update(orderProduct *models.OrderProduct) (int, error)
 	DeleteByIDs(orderID, productID int) (int, error)
+	GetProductPrice(productID int) (float32, error)
 }
 
 type OrderProductsRepository struct {
@@ -24,7 +26,7 @@ type OrderProductsRepository struct {
 }
 
 func (op OrderProductsRepository) Create(orderProduct *models.OrderProduct) (int, error) {
-	result, err := op.db.Exec("INSERT INTO order_product (order_id, product_id, quantity) VALUES (?, ?, ?)", orderProduct.OrderID, orderProduct.ProductID, orderProduct.Quantity)
+	result, err := op.db.Exec("INSERT INTO order_product (id, order_id, product_id, quantity, price, name) VALUES (?, ?, ?, ?, ?, ?)", 0, orderProduct.OrderID, orderProduct.ProductID, orderProduct.Quantity, orderProduct.Price, orderProduct.Name)
 	if err != nil {
 		return 0, err
 	}
@@ -43,7 +45,7 @@ func (op OrderProductsRepository) GetByOrderID(id int) (*[]models.OrderProduct, 
 	}
 	orderProduct := models.OrderProduct{}
 	for rows.Next() {
-		err = rows.Scan(&orderProduct.OrderID, &orderProduct.ProductID, &orderProduct.Quantity)
+		err = rows.Scan(&orderProduct.ID, &orderProduct.OrderID, &orderProduct.ProductID, &orderProduct.Quantity, &orderProduct.Price, &orderProduct.Name)
 		if err != nil {
 			log.Println(err)
 		}
@@ -57,7 +59,7 @@ func (op OrderProductsRepository) GetByOrderID(id int) (*[]models.OrderProduct, 
 }
 
 func (op OrderProductsRepository) Update(orderProduct *models.OrderProduct) (int, error) {
-	result, err := op.db.Exec("UPDATE order_product SET quantity=? WHERE order_id=? AND product_id=?", orderProduct.Quantity, orderProduct.OrderID, orderProduct.ProductID)
+	result, err := op.db.Exec("UPDATE order_product SET quantity=?, price=? WHERE id=? ", orderProduct.Quantity, orderProduct.Price, orderProduct.ID)
 	if err != nil {
 		return 0, err
 	}
@@ -78,4 +80,25 @@ func (op OrderProductsRepository) DeleteByIDs(orderID, productID int) (int, erro
 		return 0, err
 	}
 	return int(rowsAffected), nil
+}
+
+func (op OrderProductsRepository) GetProductPrice(productID int) (float32, error) {
+	fmt.Println("repos called")
+	var price float32
+	rows, err := op.db.Query("SELECT price FROM products WHERE id=?", productID)
+	if err != nil {
+		return 0, err
+	}
+	for rows.Next() {
+		err = rows.Scan(&price)
+		if err != nil {
+			return 0, err
+		}
+	}
+	fmt.Println("price from repos:", price)
+	err = rows.Close()
+	if err != nil {
+		return price, err
+	}
+	return price, nil
 }

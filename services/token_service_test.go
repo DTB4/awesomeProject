@@ -86,8 +86,8 @@ const userID = 1
 
 func (suite *TokenServiceTestSuite) TestTokenService_ValidateAccessToken() {
 
-	accessToken, refreshToken, _ := suite.TokenService.generateToken(userID, suite.cfg.AuthConfig.AccessLifeTimeMinutes, suite.cfg.AuthConfig.AccessSecretString)
-	expAccessToken, _, _ := suite.TokenService.generateToken(userID, -1, suite.cfg.AuthConfig.AccessSecretString)
+	accessToken, refreshToken, _ := suite.TokenService.generateToken(userID, suite.cfg.AuthConfig.AccessLifeTimeMinutes, suite.cfg.AuthConfig.AccessSecretString, "")
+	expAccessToken, _, _ := suite.TokenService.generateToken(userID, -1, suite.cfg.AuthConfig.AccessSecretString, "")
 
 	testCases := []TestCaseValidateToken{
 		{

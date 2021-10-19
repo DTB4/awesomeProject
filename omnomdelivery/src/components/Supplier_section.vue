@@ -1,10 +1,21 @@
 <template>
-  <div class="supplier_section" id="supplier_section_id">
-    <supplier
-        v-for="(supplier, id) in suppliers_array"
-        :key="id"
-        :supplier_ent="supplier"
-    ></supplier>
+  <div>
+    <div id="supplier_section_id" class="supplier_section">
+      <div v-if="showLoading">Loading...</div>
+      <supplier v-for="(supplier, id) in suppliers_array"
+                :key="id"
+                :supplier_ent="supplier"
+                @showProductsFor="showProductsFor"
+      ></supplier>
+
+    </div>
+    <div class="supplier_products_section">
+      <product
+          v-for="(product, id) in products"
+          :key="id"
+          :product_ent="product"
+      ></product>
+    </div>
   </div>
 </template>
 
@@ -14,29 +25,74 @@ export default {
   data() {
     return {
       suppliers_array: [],
+      showLoading: true,
+      productsForID: 0,
+      products: [],
     };
   },
+  //TODO: make sorting by work time
+  props: {
+    workingTime: {
+      type: String,
+      required: true,
+    },
+    supplierType: {
+      type: String,
+      required: false,
+      default: "",
+    }
+  },
+  watch: {
+    async workingTime(newValue) {
+      await this.getSuppliers(this.supplierType, newValue)
+      this.productsForID = 0
+      this.products = []
+
+    },
+    async supplierType(newValue) {
+      await this.getSuppliers(newValue, this.workingTime)
+      this.productsForID = 0
+      this.products = []
+
+    },
+    async productsForID(newValue) {
+      await this.getProductsForSupplierByID(newValue)
+    }
+  },
   methods: {
-    async getAllSuppliers() {
-      let resp = await fetch("http://localhost:8081/suppliers", {
+    async getProductsForSupplierByID(id) {
+      if (id === 0) {
+        return
+      }
+      let input = "http://localhost:8081/productsbysupplier?" + "_supplier_id=" + id
+      let resp = await fetch(input, {
         method: "GET",
       });
-      let suppliersMassive = await resp.json();
-      return suppliersMassive;
+      this.products = await resp.json()
+
+    },
+    showProductsFor(event) {
+      this.productsForID = event
+    },
+    async getSuppliers(type, time) {
+      let input = "http://localhost:8081/supplierparam?" + "_type=" + type + "&_time=" + time
+      let resp = await fetch(input, {
+        method: "GET",
+      });
+      this.suppliers_array = await resp.json()
+
     },
   },
-  created() {
-  },
-  async mounted() {
-    document.getElementById("supplier_section_id").innerText = "Loading";
-    this.suppliers_array = await this.getAllSuppliers();
-    document.getElementById("supplier_section_id").innerText = "";
+  async created() {
+    await this.getSuppliers(this.supplierType, this.workingTime);
+    this.showLoading = false
   },
 };
 </script>
 
 <style scoped>
-.supplier_section {
+.supplier_section,
+.supplier_products_section {
   width: auto;
   height: auto;
   border: solid black;
@@ -57,7 +113,7 @@ export default {
   }
 }
 
-.supplier_section > * {
+.supplier_section, > * {
   box-sizing: border-box;
   flex: 0 1 15em;
   opacity: 0;

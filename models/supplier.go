@@ -51,6 +51,9 @@ type SupplierRequestType struct {
 type SupplierRequestTime struct {
 	Time string `json:"time"`
 }
+type SupplierTypeResponse struct {
+	Types []string `json:"types"`
+}
 
 func TransformSupplierForResponse(supplier *Supplier) *SupplierResponse {
 	SupplierResponse := SupplierResponse{

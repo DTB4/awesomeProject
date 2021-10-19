@@ -3,6 +3,7 @@ package repository
 import (
 	"awesomeProject/models"
 	"database/sql"
+	"fmt"
 	"log"
 )
 
@@ -16,6 +17,7 @@ type ProductsRepositoryI interface {
 	GetAll() (*[]models.Product, error)
 	GetAllBySupplierID(id int) (*[]models.Product, error)
 	GetALLByType(typ string) (*[]models.Product, error)
+	GetTypes() (*models.ProductTypesResponse, error)
 	Update(product *models.Product) (int, error)
 	Delete(id int) (int, error)
 	SoftDelete(id int) (int, error)
@@ -104,7 +106,12 @@ func (p ProductsRepository) GetAllBySupplierID(id int) (*[]models.Product, error
 
 func (p ProductsRepository) GetALLByType(productType string) (*[]models.Product, error) {
 	var products []models.Product
-	rows, err := p.db.Query("SELECT * FROM products WHERE type=? AND deleted=false", productType)
+	query := "SELECT * FROM products WHERE deleted=false"
+	if productType != "all" {
+		query += fmt.Sprint(" AND type='", productType, "'")
+	}
+
+	rows, err := p.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
@@ -121,6 +128,27 @@ func (p ProductsRepository) GetALLByType(productType string) (*[]models.Product,
 		return nil, err
 	}
 	return &products, nil
+}
+
+func (p ProductsRepository) GetTypes() (*models.ProductTypesResponse, error) {
+	var productsTypes models.ProductTypesResponse
+	rows, err := p.db.Query("SELECT DISTINCT type from products;")
+	if err != nil {
+		return nil, err
+	}
+	var productType string
+	for rows.Next() {
+		err = rows.Scan(&productType)
+		if err != nil {
+			log.Println(err)
+		}
+		productsTypes.Types = append(productsTypes.Types, productType)
+	}
+	err = rows.Close()
+	if err != nil {
+		return nil, err
+	}
+	return &productsTypes, nil
 }
 
 func (p ProductsRepository) Update(product *models.Product) (int, error) {

@@ -31,30 +31,41 @@ type OrderHandler struct {
 func (o OrderHandler) Create(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "POST":
-
-		var orderProducts []models.OrderProduct
-		err := json.NewDecoder(req.Body).Decode(&orderProducts)
+		var orderRequest models.OrderRequest
+		err := json.NewDecoder(req.Body).Decode(&orderRequest)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotAcceptable)
 		}
 		order := models.Order{
-			IDUser: req.Context().Value("CurrentUser").(models.ActiveUserData).ID,
-			Status: "created",
+			IDUser:        req.Context().Value("CurrentUser").(models.ActiveUserData).ID,
+			Status:        "created",
+			Address:       orderRequest.Address,
+			ContactNumber: orderRequest.ContactNumber,
 		}
 		orderID, err := o.orderService.CreateOrder(&order)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
+			//TODO: make logging for errors in all handlers
 			return
 		}
-		orderProductsCreationResult, err := o.orderService.CreateOrderProducts(orderID, &orderProducts)
+		orderProductsCreationResult, total, err := o.orderService.CreateOrderProducts(orderID, &orderRequest.Products)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		_, err = o.orderService.Update(&models.Order{ID: orderID, Total: total})
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			o.logger.FErrorLog("error in Create order handler while updating total", err)
+			return
+		}
+
 		w.WriteHeader(http.StatusOK)
 		orderResponse := models.OrderCreationResponse{
 			OrderID:    orderID,
 			ProductQty: orderProductsCreationResult,
+			Total:      total,
 		}
 		response, _ := json.Marshal(orderResponse)
 
@@ -133,7 +144,7 @@ func (o OrderHandler) Update(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		rowsAffected, err := o.orderService.Update(updateOrderRequest)
+		rowsAffected, err := o.orderService.Update(&models.Order{ID: updateOrderRequest.OrderID, Status: updateOrderRequest.Status})
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -151,7 +162,7 @@ func (o OrderHandler) Update(w http.ResponseWriter, req *http.Request) {
 func (o OrderHandler) Delete(w http.ResponseWriter, req *http.Request) {
 	switch req.Method {
 	case "POST":
-
+		//TODO make DELETE logic for orderHandler!
 	default:
 		http.Error(w, "Only POST is Allowed", http.StatusMethodNotAllowed)
 	}

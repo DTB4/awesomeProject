@@ -1,21 +1,44 @@
 <template>
-  <div class="cart" id="cart_id">
-    <div v-if="cart_products_array.length === 0">Cart is empty</div>
-    <div
-        class="cart_product"
-        v-for="(product, id) in cart_products_array"
-        :key="id"
-    >
-      <button @click="decreaseProduct(id)">-</button>
-      <button @click="increaseProduct(id)">+</button>
-      <div>"x{{ product[1] }}"</div>
-      <div>{{ product[0].name }}</div>
-      <div>{{ product[0].price }} $</div>
-      <button @click="removeProduct(id)">X</button>
+  <div id="cart_id" class="cart">
+    <div>
+      <div v-if="cart_products_array.length === 0">Cart is empty</div>
+      <div
+          v-for="(product, id) in cart_products_array"
+          :key="id"
+          class="cart_product"
+      >
+        <button @click="decreaseProduct(id)">-</button>
+        <button @click="increaseProduct(id)">+</button>
+        <div>"x{{ product[1] }}"</div>
+        <div>{{ product[0].name }}</div>
+        <div>{{ product[0].price }} $</div>
+        <button @click="removeProduct(id)">X</button>
+      </div>
+      <h2>Total {{ totalPrice }}</h2>
+      <div v-if="isLogin && cart_products_array.length !== 0" @click="showConfirmationWindow=true">Make Order</div>
+      <div v-if="!isLogin">pls login to make order</div>
     </div>
-    <h2>Total {{ totalPrice }}</h2>
-    <div @click="createOrder" v-if="isLogin">Create Order</div>
-    <div v-if="!isLogin">pls login to make order</div>
+    <div v-if="showConfirmationWindow">
+      <input
+          id="confirmation_input_address"
+          class="input"
+          placeholder="address"
+          type="text"
+          v-bind:value="address"
+          @input="address = $event.target.value"
+          @submit.prevent
+      />
+      <input
+          id="confirmation_input_contact_number"
+          class="input"
+          placeholder="contact_number"
+          type="text"
+          v-bind:value="contactNumber"
+          @input="contactNumber = $event.target.value"
+          @submit.prevent
+      />
+      <div @click="createOrder">Confirm Order</div>
+    </div>
   </div>
 </template>
 
@@ -36,6 +59,9 @@ export default {
   data() {
     return {
       cart_products_array: [],
+      showConfirmationWindow: false,
+      address: "",
+      contactNumber: "",
     };
   },
   computed: {
@@ -46,11 +72,9 @@ export default {
       let total = 0;
       for (let i = 0; i < this.cart_products_array.length; i++) {
         total +=
-            this.cart_products_array[i][0].price *
-            100 *
-            this.cart_products_array[i][1];
+            this.cart_products_array[i][0].price * this.cart_products_array[i][1];
       }
-      return total / 100;
+      return total.toFixed(2);
     },
   },
   methods: {
@@ -66,16 +90,22 @@ export default {
     ]),
     async createOrder() {
       console.log('orderCreate Button pressed')
-      let productsBody = []
+      let productsBody = {};
+      productsBody.address = this.address
+      productsBody.contact_number = this.contactNumber
+      productsBody.products = []
+      console.log(productsBody);
       for (let i = 0; i < this.cart_products_array.length; i++) {
-        productsBody.push({
+        productsBody.products.push({
           order_id: 0,
           product_id: this.cart_products_array[i][0].id,
           quantity: this.cart_products_array[i][1],
+          name: this.cart_products_array[i][0].name,
         })
-        console.log(productsBody)
+
       }
       console.log(productsBody)
+
       const response = await fetch("http://localhost:8081/createorder", {
         method: "POST",
         mode: "cors",
@@ -88,11 +118,13 @@ export default {
       if (response.ok) {
         this.clearCart()
         this.$emit("hideDialogWindow")
-        alert("order Created")
+        let resp = await response.json()
+        alert(`order Created with ID:  ${resp.order_id} and ${resp.product_qty} products. Total: ${resp.total}`)
       } else if (response.status === 401) {
         //TODO: try to catch 401 error without "error" in console
         let ok = await this.refreshTokens();
         if (ok) {
+          console.log("try again createOrder")
           await this.createOrder();
         }
       } else {

@@ -1,5 +1,6 @@
 <template>
-  <div class="products_section" id="products_section_id">
+  <div id="products_section_id" class="products_section">
+    <div v-if="showLoading">Loading...</div>
     <product
         v-for="(product, id) in products_array"
         :key="id"
@@ -14,25 +15,42 @@ export default {
   data() {
     return {
       products_array: [],
+      showLoading: true,
     };
   },
+  props: {
+    productType: {
+      type: String,
+      required: false,
+      default: "",
+    }
+  },
+  watch: {
+    productType(newValue) {
+      this.products_array = []
+      this.showLoading = true
+      this.getAllProducts(newValue)
+    }
+  },
   methods: {
-    async getAllProducts() {
-      let resp = await fetch("http://localhost:8081/products", {
+    async getAllProducts(type) {
+      if (type === "") {
+        return
+      }
+      let input = "http://localhost:8081/productsbytype?_product_type=" + type
+      let resp = await fetch(input, {
         method: "GET",
       });
-      let productsMassive = await resp.json();
-      return productsMassive;
+      this.showLoading = false
+      this.products_array = await resp.json()
     },
   },
   created() {
 
   },
   async mounted() {
-    document.getElementById("products_section_id").innerText = "Loading";
-    this.products_array = await this.getAllProducts();
-    localStorage.setItem("Products", JSON.stringify(this.products_array))
-    document.getElementById("products_section_id").innerText = "";
+    this.products_array = await this.getAllProducts(this.productType);
+    this.showLoading = false
   },
 };
 </script>

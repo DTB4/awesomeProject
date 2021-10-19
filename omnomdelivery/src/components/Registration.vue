@@ -1,51 +1,51 @@
 <template>
-  <div class="registration_container" id="registration_container_id">
+  <div id="registration_container_id" class="registration_container">
     <h2>Registration</h2>
     <input
-        @submit.prevent
         id="registration_input_email"
         class="input"
-        type="email"
-        @input="(email = $event.target.value), checkEmail()"
-        v-bind:value="email"
         placeholder="email"
+        type="email"
+        v-bind:value="email"
+        @input="(email = $event.target.value), checkEmail()"
+        @submit.prevent
     />
     <input
-        @submit.prevent
         id="registration_input_password"
         class="input"
-        type="password"
-        @input="(password = $event.target.value), checkPassword()"
-        v-bind:value="password"
         placeholder="password"
+        type="password"
+        v-bind:value="password"
+        @input="(password = $event.target.value), checkPassword()"
+        @submit.prevent
     />
     <input
-        @submit.prevent
         id="registration_input_first_name"
         class="input"
-        type="text"
-        @input="first_name = $event.target.value"
-        v-bind:value="first_name"
         placeholder="first_name"
+        type="text"
+        v-bind:value="first_name"
+        @input="first_name = $event.target.value"
+        @submit.prevent
     />
     <input
-        @submit.prevent
         id="registration_input_second_name"
         class="input"
-        type="text"
-        @input="second_name = $event.target.value"
-        v-bind:value="second_name"
         placeholder="second_name"
+        type="text"
+        v-bind:value="second_name"
+        @input="second_name = $event.target.value"
+        @submit.prevent
     />
     <input
-        @submit.prevent
         id="registration_submit"
         class="button"
         type="button"
         value="Register"
         @click="registerUser()"
+        @submit.prevent
     />
-    <div class="message_container" id="registration_message_container">
+    <div id="registration_message_container" class="message_container">
       <h2 id="email_message" v-text="password_message"></h2>
       <h2 id="password_message" v-text="email_message"></h2>
     </div>

@@ -29,5 +29,14 @@ type UserResponse struct {
 	Email     string `json:"email"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
-	Created   bool   `json:"created"`
+}
+
+func UserModelTransform(user *User) *UserResponse {
+	response := UserResponse{
+		ID:        user.ID,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
+	}
+	return &response
 }
