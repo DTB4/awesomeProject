@@ -14,9 +14,9 @@
         <div>{{ product[0].price }} $</div>
         <button @click="removeProduct(id)">X</button>
       </div>
-      <h2>Total {{ totalPrice }}</h2>
-      <div v-if="getLoginStatus && cart_products_array.length !== 0" @click="showConfirmationWindow=true">Make Order
-      </div>
+      <h2 style="justify-self: end">Total {{ totalPrice }}</h2>
+      <button v-if="getLoginStatus && cart_products_array.length !== 0" @click="showConfirmationWindow=true">Make Order
+      </button>
       <div v-if="!getLoginStatus">pls login to make order</div>
     </div>
     <div v-if="showConfirmationWindow">
@@ -38,7 +38,7 @@
           @input="contactNumber = $event.target.value"
           @submit.prevent
       />
-      <div @click="createOrder">Confirm Order</div>
+      <button @click="createOrder">Confirm Order</button>
     </div>
   </div>
 </template>
@@ -141,6 +141,7 @@ export default {
   justify-content: flex-start;
   padding: 5px;
   text-justify: auto;
+  border-bottom: coral dotted 1px;
 }
 
 .cart_product > * {

@@ -1,16 +1,27 @@
 <template>
   <div>
     <div class="main_header">
-      <button v-if="!getLoginStatus()" @click="showLoginWindow()">Login</button>
-      <button @click="cartWindowVisible=true">Cart</button>
-      <button v-if="!getLoginStatus()" @click="showRegistrationWindow()">Register</button>
-      <button v-if="getLoginStatus()">
-        <logout></logout>
-      </button>
-      <button v-if="getLoginStatus()" @click="showOrdersWindow()">Orders</button>
-      <div v-if="getLoginStatus()" @click="showProfileWindow()"><img class="profile_img"
-                                                                     src="../assets/avatar_icon1.png" height="30pt">
+      <div class="nav_bar">
+        <div v-if="currentRouteName==='Home'" style="background-color: coral; opacity: 0.7;">{{this.currentRouteName}}</div>
+        <router-link v-if="currentRouteName!=='Home'" to="/">Home</router-link>
+        <div v-if="currentRouteName==='Goods'" style="background-color: coral; opacity: 0.7;">{{this.currentRouteName}}</div>
+        <router-link v-if="currentRouteName!=='Goods'" to="/goods">Goods</router-link>
+        <div v-if="currentRouteName==='About'" style="background-color: coral; opacity: 0.7;">{{this.currentRouteName}}</div>
+        <router-link  v-if="currentRouteName!=='About'" to="/about">About</router-link>
       </div>
+      <div class="buttons_side">
+        <button v-if="!getLoginStatus()" @click="showLoginWindow()">Login</button>
+        <button @click="cartWindowVisible=true">Cart</button>
+        <button v-if="!getLoginStatus()" @click="showRegistrationWindow()">Register</button>
+        <button v-if="getLoginStatus()">
+          <logout></logout>
+        </button>
+        <button v-if="getLoginStatus()" @click="showOrdersWindow()">Orders</button>
+        <div v-if="getLoginStatus()" @click="showProfileWindow()"><img class="profile_img"
+                                                                       src="../assets/avatar_icon1.png" height="30pt">
+        </div>
+      </div>
+
     </div>
     <dialog_window
         :show="loginWindowVisible"
@@ -54,7 +65,9 @@ import {mapGetters, mapMutations} from "vuex";
 export default {
   name: "Header",
   components: {Orders},
-
+  props:{
+    currentRouteName: String,
+},
   data() {
     return {
       loginWindowVisible: false,
@@ -94,13 +107,37 @@ export default {
     },
     hideOrdersWindow() {
       this.ordersWindowVisible = false;
-    }
-  }
+    },
+
+  },
+
 };
 </script>
 
 <style scoped>
 .main_header {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  /*height: 10%;*/
+  background: #2c3e50;
+  /*padding: 1pt;*/
+}
+.nav_bar{
+  display: flex;
+  width: 50%;
+  justify-content: space-around;
+  align-items: center;
+  height: 10%;
+  background: #2c3e50;
+  padding: 1pt;
+}
+.nav_bar>*{
+  text-decoration: white;
+  color: white;
+}
+.buttons_side{
+  width: 50%;
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -109,8 +146,6 @@ export default {
   padding: 1pt;
 }
 
-.profile_img {
 
-}
 
 </style>

@@ -57,6 +57,7 @@ export default {
 
 <style scoped>
 .products_section {
+  min-height: 85vh;
   overflow: auto;
   width: auto;
   height: 100%;

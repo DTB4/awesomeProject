@@ -34,5 +34,6 @@ export default {
 .orders_product {
   display: flex;
   justify-content: space-around;
+  border-bottom: coral dotted 1px;
 }
 </style>

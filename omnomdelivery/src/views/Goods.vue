@@ -2,7 +2,7 @@
   <div class="Goods">
     <select v-model="selectedProductType" @change="changeProductType">
       <option disabled value="">Choose type from list</option>
-      <option value="all">All</option>
+      <option  selected value="all">All</option>
       <option v-for="(type, id) in productTypes" :key="id" :value="type">{{ type }}</option>
     </select>
 

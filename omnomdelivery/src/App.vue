@@ -1,11 +1,7 @@
 <template>
   <div class="app">
-    <omnom_header></omnom_header>
-    <div>
-      <router-link to="/">Home</router-link>
-      <router-link to="/goods">Products</router-link>
-      <router-link to="/about">About</router-link>
-    </div>
+    <omnom_header :current-route-name="$router.currentRoute.name"></omnom_header>
+
 
     <router-view/>
 

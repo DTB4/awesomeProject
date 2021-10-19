@@ -16,3 +16,9 @@ export default {
   components: {LittleRoundButton},
 };
 </script>
+
+<style>
+.about{
+  height: 85vh;
+}
+</style>
