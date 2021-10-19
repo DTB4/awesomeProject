@@ -1,12 +1,24 @@
 <template>
   <div class="about">
     <h1>This is an about page</h1>
+    <little-round-button>+</little-round-button>
+
+    <little-round-button>-</little-round-button>
+
+
 
   </div>
 </template>
 <script>
+import LittleRoundButton from "../components/UI/LittleRoundButton";
 export default {
   name: "About",
-  components: {},
+  components: {LittleRoundButton},
 };
 </script>
+
+<style>
+.about{
+  height: 85vh;
+}
+</style>

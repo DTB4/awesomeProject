@@ -3,7 +3,6 @@ package services
 import (
 	"awesomeProject/models"
 	"awesomeProject/repository"
-	"fmt"
 	"math"
 )
 
@@ -44,7 +43,6 @@ func (o OrderService) CreateOrderProducts(orderID int, orderProducts *[]models.O
 
 		total = math.Round(total*100+float64(int(actualPrice*100)*(*orderProducts)[i].Quantity)) / 100
 
-		fmt.Println(total)
 		if err != nil {
 			return 0, 0, err
 		}

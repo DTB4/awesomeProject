@@ -86,8 +86,11 @@ export default {
 </script>
 
 <style scoped>
+
 .order_container {
   display: flex;
+  border-bottom: coral dotted 1px;
+  padding: 2pt;
 }
 
 .order_container > * {

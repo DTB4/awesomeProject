@@ -14,9 +14,10 @@
         <div>{{ product[0].price }} $</div>
         <button @click="removeProduct(id)">X</button>
       </div>
-      <h2>Total {{ totalPrice }}</h2>
-      <div v-if="isLogin && cart_products_array.length !== 0" @click="showConfirmationWindow=true">Make Order</div>
-      <div v-if="!isLogin">pls login to make order</div>
+      <h2 style="justify-self: end">Total {{ totalPrice }}</h2>
+      <button v-if="getLoginStatus && cart_products_array.length !== 0" @click="showConfirmationWindow=true">Make Order
+      </button>
+      <div v-if="!getLoginStatus">pls login to make order</div>
     </div>
     <div v-if="showConfirmationWindow">
       <input
@@ -37,7 +38,7 @@
           @input="contactNumber = $event.target.value"
           @submit.prevent
       />
-      <div @click="createOrder">Confirm Order</div>
+      <button @click="createOrder">Confirm Order</button>
     </div>
   </div>
 </template>
@@ -50,12 +51,6 @@ import {mapGetters} from "vuex/dist/vuex.mjs";
 export default {
   mixins: [refresh_tokens],
   name: "Cart",
-  props: {
-    isLogin: {
-      type: Boolean,
-      required: true,
-    }
-  },
   data() {
     return {
       cart_products_array: [],
@@ -78,6 +73,7 @@ export default {
     },
   },
   methods: {
+    ...mapGetters("tokens", ["getLoginStatus"]),
     ...mapActions("tokens", ["removeTokens"]),
     ...mapGetters("cart", ["getProducts"]),
     ...mapActions("cart", [
@@ -144,9 +140,11 @@ export default {
   display: flex;
   justify-content: flex-start;
   padding: 5px;
+  text-justify: auto;
+  border-bottom: coral dotted 1px;
 }
 
 .cart_product > * {
-  padding: 0 5px 0 5px;
+  padding: 5px 5px 5px 5px;
 }
 </style>

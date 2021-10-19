@@ -3,7 +3,6 @@ package repository
 import (
 	"awesomeProject/models"
 	"database/sql"
-	"fmt"
 	"log"
 )
 
@@ -83,7 +82,7 @@ func (op OrderProductsRepository) DeleteByIDs(orderID, productID int) (int, erro
 }
 
 func (op OrderProductsRepository) GetProductPrice(productID int) (float32, error) {
-	fmt.Println("repos called")
+
 	var price float32
 	rows, err := op.db.Query("SELECT price FROM products WHERE id=?", productID)
 	if err != nil {
@@ -95,7 +94,6 @@ func (op OrderProductsRepository) GetProductPrice(productID int) (float32, error
 			return 0, err
 		}
 	}
-	fmt.Println("price from repos:", price)
 	err = rows.Close()
 	if err != nil {
 		return price, err

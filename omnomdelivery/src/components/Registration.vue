@@ -37,14 +37,11 @@
         @input="second_name = $event.target.value"
         @submit.prevent
     />
-    <input
-        id="registration_submit"
-        class="button"
-        type="button"
-        value="Register"
+    <button
         @click="registerUser()"
         @submit.prevent
-    />
+    >Register
+    </button>
     <div id="registration_message_container" class="message_container">
       <h2 id="email_message" v-text="password_message"></h2>
       <h2 id="password_message" v-text="email_message"></h2>
@@ -109,9 +106,9 @@ export default {
           },
           body: JSON.stringify({
             first_name: this.first_name,
-            second_name: this.second_name,
+            last_name: this.second_name,
             email: this.email,
-            password: this.password,
+            password_hash: this.password,
           }),
         });
         if (response.status === 200) {

@@ -1,5 +1,5 @@
 <template>
-  <div id="products_section_id" class="products_section">
+  <div class="products_section">
     <div v-if="showLoading">Loading...</div>
     <product
         v-for="(product, id) in products_array"
@@ -29,11 +29,11 @@ export default {
     productType(newValue) {
       this.products_array = []
       this.showLoading = true
-      this.getAllProducts(newValue)
+      this.getProductsByType(newValue)
     }
   },
   methods: {
-    async getAllProducts(type) {
+    async getProductsByType(type) {
       if (type === "") {
         return
       }
@@ -49,7 +49,7 @@ export default {
 
   },
   async mounted() {
-    this.products_array = await this.getAllProducts(this.productType);
+    this.products_array = await this.getProductsByType(this.productType);
     this.showLoading = false
   },
 };
@@ -57,8 +57,10 @@ export default {
 
 <style scoped>
 .products_section {
+  min-height: 85vh;
+  overflow: auto;
   width: auto;
-  height: auto;
+  height: 100%;
   border: solid black;
   background: antiquewhite;
   display: flex;
@@ -68,21 +70,8 @@ export default {
   justify-content: space-evenly;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
 
 .products_section > * {
-  box-sizing: border-box;
-  flex: 0 1 15em;
-  opacity: 0;
-  animation: fadeIn ease-in 1;
-  animation-fill-mode: forwards;
-  animation-duration: 1s;
+
 }
 </style>
